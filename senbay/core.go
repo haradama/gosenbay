@@ -8,14 +8,6 @@ import (
 	"errors"
 )
 
-// aaa
-const (
-	NegativeSign int32 = 45 // rune("-")
-	DecimalPoint int32 = 46 // rune(".")
-	Colon int32 = 59 // rune(":")
-	RuneZero int32 = 48
-)
-
 // BaseX is 
 type BaseX struct {
 	PN int
@@ -118,7 +110,7 @@ func (baseX BaseX) encodeLongValue(lVal int) []rune {
 	}
 
 	if isNegative {
-		muString = append([]rune{NegativeSign}, muString...)
+		muString = append([]rune{'-'}, muString...)
 	}
 	
 	return muString
@@ -141,7 +133,7 @@ func (baseX BaseX) encodeDoubleValue(dVal float64) []rune {
 	runeIntVal := baseX.encodeLongValue(sVal)
 	if len(vals) == 1 {
 		if isNegative {
-			runeIntVal = append([]rune{NegativeSign}, runeIntVal...)
+			runeIntVal = append([]rune{'-'}, runeIntVal...)
 		}
 		return runeIntVal
 	}
@@ -162,10 +154,10 @@ func (baseX BaseX) encodeDoubleValue(dVal float64) []rune {
 
 	var encoded []rune
 	if isNegative {
-		encoded = append(encoded, []rune{NegativeSign}...)
+		encoded = append(encoded, []rune{'-'}...)
 	}
 		encoded = append(encoded, runeIntVal...)
-		encoded = append(encoded, []rune{DecimalPoint}...)
+		encoded = append(encoded, []rune{'.'}...)
 		encoded = append(encoded, zeros...)
 		encoded = append(encoded, []rune(strDecVal)...)
 
@@ -183,7 +175,7 @@ func indexOf(element string, data []string) (int) {
 
 func (baseX BaseX) decodeLongValue(sVal []rune) int {
 	var isNegative bool
-	if sVal[0] == NegativeSign {
+	if sVal[0] == '-' {
 		isNegative = true
 	}
 
@@ -206,7 +198,7 @@ func (baseX BaseX) decodeLongValue(sVal []rune) int {
 
 func (baseX BaseX) decodeDoubleValue(sVal []rune) float64 {
 	var isNegative bool
-	if sVal[0] == NegativeSign {
+	if sVal[0] == '-' {
 		isNegative = true
 		sVal = sVal[1:]
 	}
@@ -216,7 +208,7 @@ func (baseX BaseX) decodeDoubleValue(sVal []rune) float64 {
 
 	var isFloat bool
 	for _, num := range sVal {
-		if num != DecimalPoint {
+		if num != '.' {
 			if isFloat {
 				runeFloatNum = append(runeFloatNum, num)
 			} else {
@@ -301,12 +293,14 @@ func (senbayFormat Format) getReservedOriginalKey(key string) string {
 }
 
 func (senbayFormat Format) encode(text string) string {
+	fmt.Println(text)
 	var encodedText string
 	elements := strings.Split(text, ",")
 	var count int
 
 	for _, element := range elements {
-		contents := strings.Split(":", element)
+		contents := strings.Split(element, ":")
+		fmt.Println(contents)
 		if len(contents) > 1 {
 			key := contents[0]
 			var val string
@@ -324,16 +318,23 @@ func (senbayFormat Format) encode(text string) string {
 				key = reservedKey
 			}
 			if len(val) > 0 {
-				if isReservedKey {
-					encodedText = encodedText + key + senbayFormat.baseX.encodeDoubleValue(float64(val))
+				if val[:1] != "'" {
+					floatVal, err := strconv.ParseFloat(val, 64)
+					if err != nil {
+						panic(err)
+					}
+					if isReservedKey {
+						encodedText = encodedText + key + string(senbayFormat.baseX.encodeDoubleValue(floatVal))
+					} else {
+						fmt.Println(floatVal, senbayFormat.baseX.encodeDoubleValue(floatVal), string(senbayFormat.baseX.encodeDoubleValue(floatVal)))
+						encodedText = encodedText + key + ":" + string(senbayFormat.baseX.encodeDoubleValue(floatVal))
+					}
 				} else {
-					encodedText = encodedText + key + ":" + senbayFormat.baseX.encodeDoubleValue(float64(val))
-				}
-			} else {
-				if isReservedKey {
-					encodedText = encodedText + key + val
-				} else {
-					encodedText = encodedText + key + ":" + val
+					if isReservedKey {
+						encodedText = encodedText + key + val
+					} else {
+						encodedText = encodedText + key + ":" + val
+					}
 				}
 			}
 		}
@@ -352,8 +353,8 @@ func (senbayFormat Format) decode(text string) string {
 	for _, element := range elements {
 		var key string
 		var val string
-		contents := strings.Split(element, ",")
-		if len(contents) < 1 {
+		contents := strings.Split(element, ":")
+		if len(contents) > 1 {
 			key = contents[0]
 			for _, con := range contents[1:] {
 				if val == "" {
@@ -373,7 +374,8 @@ func (senbayFormat Format) decode(text string) string {
 		}
 
 		if val[:1] != "'" {
-			decodedText = decodedText + key + senbayFormat.baseX.decodeDoubleValue(val)
+			decodedDoubleValue := senbayFormat.baseX.decodeDoubleValue([]rune(val))
+			decodedText = decodedText + key + strconv.FormatFloat(decodedDoubleValue, 'f', -1, 64)
 		} else {
 			decodedText = decodedText + key + ":" + val
 		}
@@ -386,55 +388,98 @@ func (senbayFormat Format) decode(text string) string {
 	return decodedText
 }
 
-// Frame is
 type Frame struct {
-	Data map[int]string
+	Data map[string]string
 	PN int
 	SF *Format
 }
 
 // NewSenbayData is
-func NewSenbayData(PN int) *Frame {
+func NewSenbayFrame(PN int) *Frame {
 	SF, err := NewSenbayFormat(PN)
 	if err != nil {
 		panic(err)
 	}
+	Data := map[string]string{}
 	senbayFrame := &Frame{
+		Data: Data,
 		PN: PN,
 		SF: SF,
 	}
 	return senbayFrame
 }
 
-func (senbayFrame Frame) addNumber(key int, value string) {
-	senbayFrame.Data[key] = value
+func (senbayFrame Frame) AddNumber(key string, value int) {
+	senbayFrame.Data[key] = strconv.Itoa(value)
 }
 
-func (senbayFrame Frame) addText(key int, value string) {
+func (senbayFrame Frame) AddText(key string, value string) {
 	senbayFrame.Data[key] = "'" + value + "'"
 }
 
-func (senbayFrame Frame) clear() {
-	senbayFrame.Data = map[int]string{}
+func (senbayFrame Frame) Clear() {
+	senbayFrame.Data = map[string]string{}
 }
 
-func (senbayFrame Frame) encode(compress bool) {
+func (senbayFrame Frame) Encode(compress bool) string {
 	var formattedData string
 	var count int
 	for k, v :=  range senbayFrame.Data {
-		formattedData = fmt.Sprint("%s%s:%s", formattedData, k, v)
+		formattedData = formattedData + k + ":" + v
 		if count < len(senbayFrame.Data) - 1 {
 			count++
-			formattedData = formattedData + ',';
+			formattedData = formattedData + ",";
 		}
 	}
 	if compress {
 		return "V:4," + senbayFrame.SF.encode(formattedData)
-	} else {
-		return "V:3," + formattedData
 	}
+	return "V:3," + formattedData
 }
 
-// func (senbayFrame Frame) decode() {
-	
-// }
+func (senbayFrame Frame) Decode(text string) map[string]string {
+	senbayMap := map[string]string{}
+	elements := strings.Split(text, ",")
+	var isCompress bool
+	for _, element := range elements {
+		contents := strings.Split(element, ",")
+		if len(contents) > 1 && contents[0] == "V" && contents[1] == "4" {
+			isCompress = true
+			break
+		}
+	}
+	if isCompress {
+		text = senbayFrame.SF.decode(text)
+	}
+	// elements := strings.Split(text, ",")
+
+	for _, element := range elements {
+		contents := strings.Split(element, ":")
+		if len(contents) > 1 {
+			key := contents[0]
+			var value string
+			for _, con := range contents[1:] {
+				if value == "" {
+					value = con
+				} else {
+					value = value + ":" + con
+				}
+			}
+
+			if key != "V" {
+				if value != "None" {
+					if value[:1] == "'" {
+						senbayMap[key] = value[1:len(value) - 1]
+					} else {
+						// v, err := strconv.Atoi(value)
+						// if err != nil {
+						// 	panic(err)
+						// }
+						senbayMap[key] = value
+					}
+				}
+			}
+		}
+	}
+	return senbayMap
+}
