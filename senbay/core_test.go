@@ -179,7 +179,7 @@ func TestNewSenbayFormat(t *testing.T) {
 	}
 }
 
-func TestGetReservedShortKey(t *testing.T) {
+func TestSenbayFormatGetReservedShortKey(t *testing.T) {
 	senbayFormat, err := NewSenbayFormat(121)
 	if err != nil {
 		t.Fatalf("failed test %#v", err)
@@ -192,7 +192,7 @@ func TestGetReservedShortKey(t *testing.T) {
 	}
 }
 
-func TestGetReservedOriginalKey(t *testing.T) {
+func TestSenbayFormatGetReservedOriginalKey(t *testing.T) {
 	senbayFormat, err := NewSenbayFormat(121)
 	if err != nil {
 		t.Fatalf("failed test %#v", err)
@@ -205,7 +205,14 @@ func TestGetReservedOriginalKey(t *testing.T) {
 	}
 }
 
-func TestDecode(t *testing.T) {
+// func TestSenbayFormatEncode(t *testing.T) {
+// 	senbayFormat, err := NewSenbayFormat(121)
+// 	if err != nil {
+// 		t.Fatalf("failed test %#v", err)
+// 	}
+// }
+
+func TestSenbayFormatDecode(t *testing.T) {
 	senbayFormat, err := NewSenbayFormat(121)
 	if err != nil {
 		t.Fatalf("failed test %#v", err)
@@ -222,6 +229,32 @@ func TestDecode(t *testing.T) {
 	expected = "ACCX:-0.980515,ACCZ:-0.118"
 	result = senbayFormat.decode(indata)
 	if result != expected {
+		t.Error("\nresult is", result, "\nexpected： ", expected)
+	}
+}
+
+func TestNewSenbayFrame(t *testing.T) {
+	_, err := NewSenbayFrame(121)
+	if err != nil {
+		t.Fatalf("failed test %#v", err)
+	}
+
+	_, err = NewSenbayFrame(200)
+	if err == nil {
+		t.Fatalf("failed test")
+	}
+}
+
+func TestSenbayFrameDecode(t *testing.T) {
+	senbayFrame, err := NewSenbayFrame(121)
+	if err != nil {
+		t.Fatalf("failed test %#v", err)
+	}
+
+	indata := "4-.H{9,6-.|"
+	expected := "ALTI:41"
+	result := senbayFrame.Decode(indata)
+	if len(result) != 1 {
 		t.Error("\nresult is", result, "\nexpected： ", expected)
 	}
 }

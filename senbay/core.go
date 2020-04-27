@@ -1,13 +1,11 @@
 package senbay
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"math"
 	"strconv"
 	"strings"
-	"unsafe"
 )
 
 // BaseX descrive base number based on PN
@@ -317,7 +315,6 @@ func (senbayFormat Format) encode(text string) string {
 					if isReservedKey {
 						encodedText = encodedText + key + string(senbayFormat.baseX.encodeDoubleValue(floatVal))
 					} else {
-						fmt.Println(floatVal, senbayFormat.baseX.encodeDoubleValue(floatVal), string(senbayFormat.baseX.encodeDoubleValue(floatVal)))
 						encodedText = encodedText + key + ":" + string(senbayFormat.baseX.encodeDoubleValue(floatVal))
 					}
 				} else {
@@ -388,18 +385,17 @@ type Frame struct {
 }
 
 // NewSenbayFrame returns a new Frame based on PN
-func NewSenbayFrame(PN int) *Frame {
+func NewSenbayFrame(PN int) (*Frame, error) {
+	senbayFrame := &Frame{
+		PN: PN,
+	}
 	SF, err := NewSenbayFormat(PN)
 	if err != nil {
-		panic(err)
+		return senbayFrame, err
 	}
-	Data := map[string]string{}
-	senbayFrame := &Frame{
-		Data: Data,
-		PN:   PN,
-		SF:   SF,
-	}
-	return senbayFrame
+	senbayFrame.Data = map[string]string{}
+	senbayFrame.SF = SF
+	return senbayFrame, err
 }
 
 // AddNumber add number to data in senbayFrame
@@ -435,45 +431,41 @@ func (senbayFrame Frame) Encode(compress bool) string {
 }
 
 // Decode will decode the encoded text
-func (senbayFrame Frame) Decode(text []byte) map[string]string {
+func (senbayFrame Frame) Decode(text string) map[string]string {
 	senbayMap := map[string]string{}
-	elements := bytes.Split(text, []byte(","))
+	elements := strings.Split(text, ",")
 	var isCompress bool
 	for _, element := range elements {
-		contents := bytes.Split(element, []byte(","))
-		if len(contents) > 1 && contents[0][0] == 'V' && contents[1][0] == '4' {
+		contents := strings.Split(element, ",")
+		if len(contents) > 1 && contents[0] == "V" && contents[1] == "4" {
 			isCompress = true
 			break
 		}
 	}
 	if isCompress {
-		text = []byte(senbayFrame.SF.decode(*(*string)(unsafe.Pointer(&text))))
+		text = senbayFrame.SF.decode(text)
 	}
-	elements = bytes.Split(text, []byte(","))
+	elements = strings.Split(text, ",")
 
 	for _, element := range elements {
-		contents := bytes.Split(element, []byte(":"))
+		contents := strings.Split(element, ":")
 		if len(contents) > 1 {
 			key := contents[0]
 			var value string
 			for _, con := range contents[1:] {
 				if value == "" {
-					value = *(*string)(unsafe.Pointer(&con))
+					value = con
 				} else {
-					value = value + ":" + *(*string)(unsafe.Pointer(&con))
+					value = value + ":" + con
 				}
 			}
 
-			if key[0] != 'V' {
+			if key != "V" {
 				if value != "None" {
 					if value[:1] == "'" {
-						senbayMap[*(*string)(unsafe.Pointer(&key))] = value[1 : len(value)-1]
+						senbayMap[key] = value[1 : len(value)-1]
 					} else {
-						// v, err := strconv.Atoi(value)
-						// if err != nil {
-						// 	panic(err)
-						// }
-						senbayMap[*(*string)(unsafe.Pointer(&key))] = value
+						senbayMap[key] = value
 					}
 				}
 			}
