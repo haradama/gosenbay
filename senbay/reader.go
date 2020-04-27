@@ -4,65 +4,70 @@ import (
 	"fmt"
 	"image"
 
-	"gocv.io/x/gocv"
+	"github.com/kbinani/screenshot"
 	"github.com/makiuchi-d/gozxing"
 	"github.com/makiuchi-d/gozxing/qrcode"
-	"github.com/kbinani/screenshot"
+	"gocv.io/x/gocv"
 )
 
-type SenbayReader struct {
-	readerMode int
-	videoInput string
+// Reader describe an reader to interpret senbay style contents
+type Reader struct {
+	mode        int
+	videoInput  string
 	cameraInput int
 	screenInput int
 	captureArea image.Rectangle
 }
 
-func NewSenbayReader(readerMode int, videoInput string, cameraInput int, screenInput int) *SenbayReader {
-	senbayReader := &SenbayReader{
-		readerMode: readerMode,
-		videoInput: videoInput,
+// NewSenbayReader returns a new SenbayReader based on mode
+func NewSenbayReader(mode int, videoInput string, cameraInput int, screenInput int) *Reader {
+	senbayReader := &Reader{
+		mode:        mode,
+		videoInput:  videoInput,
 		cameraInput: cameraInput,
 		screenInput: screenInput,
 	}
 	return senbayReader
 }
 
-func (senbayReader SenbayReader) SetCaptureAre(captureArea image.Rectangle) {
-	senbayReader.captureArea = captureArea
+// SetCaptureArea set capture area to senbay reader based on image.Rectangle
+func (reader Reader) SetCaptureArea(captureArea image.Rectangle) {
+	reader.captureArea = captureArea
 }
 
-func (senbayReader SenbayReader) Start() {
+// Start interpreting captured image recorded in senbay style
+func (reader Reader) Start() {
 	var cap *gocv.VideoCapture
 	var err error
-	switch senbayReader.readerMode {
-		case 0:
-			cap, err = gocv.VideoCaptureFile(senbayReader.videoInput)
-			if err != nil {
-				panic(err)
-			}
-		case 1:
-			cap, err = gocv.VideoCaptureDevice(senbayReader.cameraInput)
-			if err != nil {
-				panic(err)
-			}
-		case 2:
-			bounds := screenshot.GetDisplayBounds(senbayReader.screenInput)
-			_, err := screenshot.CaptureRect(bounds)
-			if err != nil {
-				panic(err)
-			}
-		default:
-			msg := "error: The mode value should be taken 0(=video), 1(=camera), or 2(=screen)."
-			panic(msg)
+	switch reader.mode {
+	case 0:
+		cap, err = gocv.VideoCaptureFile(reader.videoInput)
+		if err != nil {
+			panic(err)
+		}
+	case 1:
+		cap, err = gocv.VideoCaptureDevice(reader.cameraInput)
+		if err != nil {
+			panic(err)
+		}
+	case 2:
+		bounds := screenshot.GetDisplayBounds(reader.screenInput)
+		_, err := screenshot.CaptureRect(bounds)
+		if err != nil {
+			panic(err)
+		}
+	default:
+		msg := "error: The mode value should be taken 0(=video), 1(=camera), or 2(=screen)."
+		panic(msg)
 	}
 
 	PN := 121
 	senbayFrame := NewSenbayFrame(PN)
 	qrReader := qrcode.NewQRCodeReader()
 	mat := gocv.NewMat()
-	if senbayReader.readerMode <= 1 {
-		window := gocv.NewWindow("Senbay")
+	if reader.mode <= 1 {
+		title := "Senbay Reader"
+		window := gocv.NewWindow(title)
 		for {
 			cap.Read(&mat)
 			window.IMShow(mat)
@@ -76,15 +81,28 @@ func (senbayReader SenbayReader) Start() {
 			}
 			result, err := qrReader.Decode(bmp, nil)
 			if err == nil {
-				senbayDict := senbayFrame.Decode(result.GetText())
+				senbayDict := senbayFrame.Decode([]byte(result.GetText()))
 				fmt.Println(senbayDict)
 			}
 
 			window.WaitKey(1)
 		}
-	} else if senbayReader.readerMode == 2 {
+	} else if reader.mode == 2 {
 		for {
-			fmt.Println("hello")
+			bounds := screenshot.GetDisplayBounds(reader.screenInput)
+			img, err := screenshot.CaptureRect(bounds)
+			if err != nil {
+				panic(err)
+			}
+			bmp, err := gozxing.NewBinaryBitmapFromImage(img)
+			if err != nil {
+				panic(err)
+			}
+			result, err := qrReader.Decode(bmp, nil)
+			if err == nil {
+				senbayDict := senbayFrame.Decode([]byte(result.GetText()))
+				fmt.Println(senbayDict)
+			}
 		}
 	}
 }

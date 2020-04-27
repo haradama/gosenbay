@@ -57,7 +57,7 @@ func TestBaseXEncodeDoubleValue(t *testing.T) {
 		t.Fatalf("failed test %#v", err)
 	}
 	var expected []rune
-	
+
 	result := baseX.encodeDoubleValue(0)
 	expected = []rune{0}
 	if result[0] != expected[0] {
@@ -126,7 +126,6 @@ func TestBaseXDecodeLongValue(t *testing.T) {
 	}
 }
 
-
 func TestBaseXDecodeDoubleValue(t *testing.T) {
 	baseX, err := NewBaseX(121)
 	if err != nil {
@@ -156,6 +155,13 @@ func TestBaseXDecodeDoubleValue(t *testing.T) {
 	indata = []rune{45, 4, 46, 0, 5}
 	totalVal = baseX.decodeDoubleValue(indata)
 	expected = -3.04
+	if totalVal != expected {
+		t.Error("\nresult is", totalVal, "\nexpected： ", expected)
+	}
+
+	indata = []rune{45, 46, 72, 123, 57}
+	totalVal = baseX.decodeDoubleValue(indata)
+	expected = -0.980515
 	if totalVal != expected {
 		t.Error("\nresult is", totalVal, "\nexpected： ", expected)
 	}
@@ -194,6 +200,27 @@ func TestGetReservedOriginalKey(t *testing.T) {
 
 	expected := "TIME"
 	result := senbayFormat.getReservedOriginalKey("0")
+	if result != expected {
+		t.Error("\nresult is", result, "\nexpected： ", expected)
+	}
+}
+
+func TestDecode(t *testing.T) {
+	senbayFormat, err := NewSenbayFormat(121)
+	if err != nil {
+		t.Fatalf("failed test %#v", err)
+	}
+
+	indata := "3+."
+	expected := "ALTI:41"
+	result := senbayFormat.decode(indata)
+	if result != expected {
+		t.Error("\nresult is", result, "\nexpected： ", expected)
+	}
+
+	indata = "4-.H{9,6-.|"
+	expected = "ACCX:-0.980515,ACCZ:-0.118"
+	result = senbayFormat.decode(indata)
 	if result != expected {
 		t.Error("\nresult is", result, "\nexpected： ", expected)
 	}
