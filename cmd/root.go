@@ -6,6 +6,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
+type Options struct {
+	optIn   string
+	optMode int
+}
+
 var (
 	o = &Options{}
 

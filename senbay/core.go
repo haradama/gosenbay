@@ -191,6 +191,8 @@ func (baseX BaseX) decodeDoubleValue(sVal []rune) float64 {
 	var isNegative bool
 	if sVal[0] == '-' {
 		isNegative = true
+
+		sVal = sVal[1:]
 	}
 
 	runeIntNum := []rune{}
@@ -209,12 +211,14 @@ func (baseX BaseX) decodeDoubleValue(sVal []rune) float64 {
 		}
 	}
 
-	if len(runeFloatNum) == 0 {
-		intVal := baseX.decodeLongValue(runeIntNum)
-		return float64(intVal)
+	var intVal int
+	if len(runeIntNum) != 0 {
+		intVal = baseX.decodeLongValue(runeIntNum)
 	}
 
-	intVal := baseX.decodeLongValue(runeIntNum)
+	if len(runeFloatNum) == 0 {
+		return float64(intVal)
+	}
 
 	var zeros []rune
 	for _, aVal := range runeFloatNum {
@@ -289,7 +293,6 @@ func (senbayFormat Format) encode(text string) string {
 
 	for _, element := range elements {
 		contents := strings.Split(element, ":")
-		fmt.Println(contents)
 		if len(contents) > 1 {
 			key := contents[0]
 			var val string
@@ -410,7 +413,7 @@ func (senbayFrame Frame) AddText(key string, value string) {
 
 // Clear wil clear the data in senbayFrame
 func (senbayFrame Frame) Clear() {
-	senbayFrame.Data = map[string]string{}
+	senbayFrame.Data = make(map[string]string)
 }
 
 // Encode will encode the data in senbayFrame
@@ -432,11 +435,12 @@ func (senbayFrame Frame) Encode(compress bool) string {
 
 // Decode will decode the encoded text
 func (senbayFrame Frame) Decode(text string) map[string]string {
+	// "V:4,0YU97.+>H,16,2$."
 	senbayMap := map[string]string{}
 	elements := strings.Split(text, ",")
 	var isCompress bool
 	for _, element := range elements {
-		contents := strings.Split(element, ",")
+		contents := strings.Split(element, ":")
 		if len(contents) > 1 && contents[0] == "V" && contents[1] == "4" {
 			isCompress = true
 			break
@@ -445,8 +449,7 @@ func (senbayFrame Frame) Decode(text string) map[string]string {
 	if isCompress {
 		text = senbayFrame.SF.decode(text)
 	}
-	elements = strings.Split(text, ",")
-
+	elements = strings.Split(text, ";")
 	for _, element := range elements {
 		contents := strings.Split(element, ":")
 		if len(contents) > 1 {

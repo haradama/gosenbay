@@ -62,7 +62,10 @@ func (reader Reader) Start() {
 	}
 
 	PN := 121
-	senbayFrame := NewSenbayFrame(PN)
+	senbayFrame, err := NewSenbayFrame(PN)
+	if err != nil {
+		panic(err)
+	}
 	qrReader := qrcode.NewQRCodeReader()
 	mat := gocv.NewMat()
 	if reader.mode <= 1 {
@@ -81,7 +84,7 @@ func (reader Reader) Start() {
 			}
 			result, err := qrReader.Decode(bmp, nil)
 			if err == nil {
-				senbayDict := senbayFrame.Decode([]byte(result.GetText()))
+				senbayDict := senbayFrame.Decode(result.GetText())
 				fmt.Println(senbayDict)
 			}
 
@@ -100,7 +103,7 @@ func (reader Reader) Start() {
 			}
 			result, err := qrReader.Decode(bmp, nil)
 			if err == nil {
-				senbayDict := senbayFrame.Decode([]byte(result.GetText()))
+				senbayDict := senbayFrame.Decode(result.GetText())
 				fmt.Println(senbayDict)
 			}
 		}
