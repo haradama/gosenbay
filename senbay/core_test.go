@@ -242,9 +242,8 @@ func TestSenbayFormatClear(t *testing.T) {
 	senbayFrame.AddText("KEY2", "hello")
 	senbayFrame.Clear()
 
-	result := senbayFrame.Encode(true)
-	if len(result) != 1 {
-		t.Error("\nresult:", result, len(result))
+	if len(senbayFrame.Data) != 0 {
+		t.Error("\nresult:", senbayFrame)
 	}
 }
 

@@ -413,7 +413,10 @@ func (senbayFrame Frame) AddText(key string, value string) {
 
 // Clear wil clear the data in senbayFrame
 func (senbayFrame Frame) Clear() {
-	senbayFrame.Data = make(map[string]string)
+	// senbayFrame.Data = make(map[string]string)
+	for key := range senbayFrame.Data {
+		delete(senbayFrame.Data, key)
+	}
 }
 
 // Encode will encode the data in senbayFrame
