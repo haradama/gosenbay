@@ -381,66 +381,65 @@ func (senbayFormat Format) decode(text string) string {
 }
 
 // Frame is
-type Frame struct {
-	Data map[string]string
-	PN   int
-	SF   *Format
+type SenbayData struct {
+	senbayData map[string]string
+	PN         int
+	SF         *Format
 }
 
 // NewSenbayData returns a new Frame based on PN
-func NewSenbayData(PN int) (*Frame, error) {
-	SenbayData := &Frame{
+func NewSenbayData(PN int) (*SenbayData, error) {
+	SenbayData := &SenbayData{
 		PN: PN,
 	}
 	SF, err := NewSenbayFormat(PN)
 	if err != nil {
 		return SenbayData, err
 	}
-	SenbayData.Data = map[string]string{}
+	SenbayData.senbayData = map[string]string{}
 	SenbayData.SF = SF
 	return SenbayData, err
 }
 
-func (SenbayData Frame) AddInt(key string, value int) {
-	SenbayData.Data[key] = strconv.Itoa(value)
+func (SD SenbayData) AddInt(key string, value int) {
+	SD.senbayData[key] = strconv.Itoa(value)
 }
 
-func (SenbayData Frame) AddFloat(key string, value float64) {
-	SenbayData.Data[key] = strconv.FormatFloat(value, 'f', -1, 64)
+func (SD SenbayData) AddFloat(key string, value float64) {
+	SD.senbayData[key] = strconv.FormatFloat(value, 'f', -1, 64)
 }
 
 // AddText add text to data in SenbayData
-func (SenbayData Frame) AddText(key string, value string) {
-	SenbayData.Data[key] = "'" + value + "'"
+func (SD SenbayData) AddText(key string, value string) {
+	SD.senbayData[key] = "'" + value + "'"
 }
 
 // Clear wil clear the data in SenbayData
-func (SenbayData Frame) Clear() {
-	for key := range SenbayData.Data {
-		delete(SenbayData.Data, key)
+func (SD SenbayData) Clear() {
+	for key := range SD.senbayData {
+		delete(SD.senbayData, key)
 	}
 }
 
 // Encode will encode the data in SenbayData
-func (SenbayData Frame) Encode(compress bool) string {
+func (SD SenbayData) Encode(compress bool) string {
 	var formattedData string
 	var count int
-	for k, v := range SenbayData.Data {
+	for k, v := range SD.senbayData {
 		formattedData = formattedData + k + ":" + v
-		if count < len(SenbayData.Data)-1 {
+		if count < len(SD.senbayData)-1 {
 			count++
 			formattedData = formattedData + ","
 		}
 	}
 	if compress {
-		return "V:4," + SenbayData.SF.encode(formattedData)
+		return "V:4," + SD.SF.encode(formattedData)
 	}
 	return "V:3," + formattedData
 }
 
 // Decode will decode the encoded text
-func (SenbayData Frame) Decode(text string) map[string]string {
-	// "V:4,0YU97.+>H,16,2$."
+func (SD SenbayData) Decode(text string) map[string]string {
 	senbayMap := map[string]string{}
 	elements := strings.Split(text, ",")
 	var isCompress bool
@@ -452,9 +451,9 @@ func (SenbayData Frame) Decode(text string) map[string]string {
 		}
 	}
 	if isCompress {
-		text = SenbayData.SF.decode(text)
+		text = SD.SF.decode(text)
 	}
-	elements = strings.Split(text, ";")
+	elements = strings.Split(text, ",")
 	for _, element := range elements {
 		contents := strings.Split(element, ":")
 		if len(contents) > 1 {

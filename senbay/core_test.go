@@ -215,28 +215,28 @@ func TestSenbayFormatGetReservedOriginalKey(t *testing.T) {
 
 // Test SenbayData
 func TestSenbayDataEncode(t *testing.T) {
-	SenbayData, err := NewSenbayData(121)
+	senbayData, err := NewSenbayData(121)
 	if err != nil {
 		t.Error("failed test", err)
 	}
 
-	SenbayData.AddInt("KEY1", 234)
-	SenbayData.AddText("KEY2", "value2")
+	senbayData.AddInt("KEY1", 234)
+	senbayData.AddText("KEY2", "value2")
 
-	result := SenbayData.Encode(true)
+	result := senbayData.Encode(true)
 	expect := "V:4,KEY1:w,KEY2:'value2'"
 	if result != expect {
 		t.Error("\nresult:", result, "\nexpect:", expect)
 	}
 
-	SenbayData, err = NewSenbayData(121)
+	senbayData, err = NewSenbayData(121)
 	if err != nil {
 		t.Error("failed test", err)
 	}
-	SenbayData.AddFloat("KEY1", 1000.34)
-	SenbayData.AddText("KEY2", "value2")
+	senbayData.AddFloat("KEY1", 1000.34)
+	senbayData.AddText("KEY2", "value2")
 
-	result = SenbayData.Encode(true)
+	result = senbayData.Encode(true)
 	expect = "V:4,KEY1:	!.#,KEY2:'value2'"
 	if result != expect {
 		t.Error("\nresult:", result, "\nexpect:", expect)
@@ -244,17 +244,17 @@ func TestSenbayDataEncode(t *testing.T) {
 }
 
 func TestSenbayDataClear(t *testing.T) {
-	SenbayData, err := NewSenbayData(121)
+	senbayData, err := NewSenbayData(121)
 	if err != nil {
 		t.Error("failed test", err)
 	}
 
-	SenbayData.AddInt("KEY1", 123)
-	SenbayData.AddText("KEY2", "hello")
-	SenbayData.Clear()
+	senbayData.AddInt("KEY1", 123)
+	senbayData.AddText("KEY2", "hello")
+	senbayData.Clear()
 
-	if len(SenbayData.Data) != 0 {
-		t.Error("\nresult:", SenbayData)
+	if len(senbayData.senbayData) != 0 {
+		t.Error("\nresult:", senbayData)
 	}
 }
 
