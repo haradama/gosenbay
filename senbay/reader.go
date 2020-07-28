@@ -62,7 +62,7 @@ func (reader Reader) Start() {
 	}
 
 	PN := 121
-	senbayFrame, err := NewSenbayFrame(PN)
+	SenbayData, err := NewSenbayData(PN)
 	if err != nil {
 		panic(err)
 	}
@@ -84,7 +84,7 @@ func (reader Reader) Start() {
 			}
 			result, err := qrReader.Decode(bmp, nil)
 			if err == nil {
-				senbayDict := senbayFrame.Decode(result.GetText())
+				senbayDict := SenbayData.Decode(result.GetText())
 				fmt.Println(senbayDict)
 			}
 
@@ -103,7 +103,7 @@ func (reader Reader) Start() {
 			}
 			result, err := qrReader.Decode(bmp, nil)
 			if err == nil {
-				senbayDict := senbayFrame.Decode(result.GetText())
+				senbayDict := SenbayData.Decode(result.GetText())
 				fmt.Println(senbayDict)
 			}
 		}

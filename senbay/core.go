@@ -387,57 +387,59 @@ type Frame struct {
 	SF   *Format
 }
 
-// NewSenbayFrame returns a new Frame based on PN
-func NewSenbayFrame(PN int) (*Frame, error) {
-	senbayFrame := &Frame{
+// NewSenbayData returns a new Frame based on PN
+func NewSenbayData(PN int) (*Frame, error) {
+	SenbayData := &Frame{
 		PN: PN,
 	}
 	SF, err := NewSenbayFormat(PN)
 	if err != nil {
-		return senbayFrame, err
+		return SenbayData, err
 	}
-	senbayFrame.Data = map[string]string{}
-	senbayFrame.SF = SF
-	return senbayFrame, err
+	SenbayData.Data = map[string]string{}
+	SenbayData.SF = SF
+	return SenbayData, err
 }
 
-// AddNumber add number to data in senbayFrame
-func (senbayFrame Frame) AddNumber(key string, value int) {
-	senbayFrame.Data[key] = strconv.Itoa(value)
+func (SenbayData Frame) AddInt(key string, value int) {
+	SenbayData.Data[key] = strconv.Itoa(value)
 }
 
-// AddText add text to data in senbayFrame
-func (senbayFrame Frame) AddText(key string, value string) {
-	senbayFrame.Data[key] = "'" + value + "'"
+func (SenbayData Frame) AddFloat(key string, value float64) {
+	SenbayData.Data[key] = strconv.FormatFloat(value, 'f', -1, 64)
 }
 
-// Clear wil clear the data in senbayFrame
-func (senbayFrame Frame) Clear() {
-	// senbayFrame.Data = make(map[string]string)
-	for key := range senbayFrame.Data {
-		delete(senbayFrame.Data, key)
+// AddText add text to data in SenbayData
+func (SenbayData Frame) AddText(key string, value string) {
+	SenbayData.Data[key] = "'" + value + "'"
+}
+
+// Clear wil clear the data in SenbayData
+func (SenbayData Frame) Clear() {
+	for key := range SenbayData.Data {
+		delete(SenbayData.Data, key)
 	}
 }
 
-// Encode will encode the data in senbayFrame
-func (senbayFrame Frame) Encode(compress bool) string {
+// Encode will encode the data in SenbayData
+func (SenbayData Frame) Encode(compress bool) string {
 	var formattedData string
 	var count int
-	for k, v := range senbayFrame.Data {
+	for k, v := range SenbayData.Data {
 		formattedData = formattedData + k + ":" + v
-		if count < len(senbayFrame.Data)-1 {
+		if count < len(SenbayData.Data)-1 {
 			count++
 			formattedData = formattedData + ","
 		}
 	}
 	if compress {
-		return "V:4," + senbayFrame.SF.encode(formattedData)
+		return "V:4," + SenbayData.SF.encode(formattedData)
 	}
 	return "V:3," + formattedData
 }
 
 // Decode will decode the encoded text
-func (senbayFrame Frame) Decode(text string) map[string]string {
+func (SenbayData Frame) Decode(text string) map[string]string {
 	// "V:4,0YU97.+>H,16,2$."
 	senbayMap := map[string]string{}
 	elements := strings.Split(text, ",")
@@ -450,7 +452,7 @@ func (senbayFrame Frame) Decode(text string) map[string]string {
 		}
 	}
 	if isCompress {
-		text = senbayFrame.SF.decode(text)
+		text = SenbayData.SF.decode(text)
 	}
 	elements = strings.Split(text, ";")
 	for _, element := range elements {
