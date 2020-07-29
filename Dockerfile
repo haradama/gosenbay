@@ -16,7 +16,7 @@ RUN wget https://github.com/opencv/opencv/archive/${OPENCV_VERSION}.zip && \
     unzip ${OPENCV_VERSION}.zip -d . && \
     mkdir /tmp/opencv/opencv-${OPENCV_VERSION}/build && \
     cd /tmp/opencv/opencv-${OPENCV_VERSION}/build/ && \
-    cmake -DOPENCV_GENERATE_PKGCONFIG=ON -D BUILD_TESTS=OFF -D BUILD_PERF_TESTS=OFF -D WITH_FFMPEG=ON -D WITH_TBB=ON .. && \
+    cmake -D OPENCV_GENERATE_PKGCONFIG=ON -D BUILD_TESTS=OFF -D BUILD_PERF_TESTS=OFF -D WITH_FFMPEG=ON -D WITH_TBB=ON .. && \
     make -j "$(nproc)" && \
     make install
 WORKDIR /root/gosenbay
