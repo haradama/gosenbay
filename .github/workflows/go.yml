@@ -30,11 +30,13 @@ jobs:
           export OPENCV_VERSION="4.3.0"
           wget https://github.com/opencv/opencv/archive/${OPENCV_VERSION}.zip && \
           unzip ${OPENCV_VERSION}.zip -d . && \
-          mkdir /tmp/opencv/opencv-${OPENCV_VERSION}/build && \
-          cd /tmp/opencv/opencv-${OPENCV_VERSION}/build/ && \
+          mkdir ./opencv-${OPENCV_VERSION}/build && \
+          cd ./opencv-${OPENCV_VERSION}/build/ && \
           cmake -DOPENCV_GENERATE_PKGCONFIG=ON -D BUILD_TESTS=OFF -D BUILD_PERF_TESTS=OFF -D WITH_FFMPEG=ON -D WITH_TBB=ON .. && \
           make -j "$(nproc)" && \
-          make install
+          make install && \
+          cd ../.. && \
+          rm -rf ./opencv-${OPENCV_VERSION}
 
       - name: Build
         run: go build -v .
