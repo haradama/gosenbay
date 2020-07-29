@@ -5,7 +5,6 @@ Gosenbay is an implementation of Senbay in golang. Features include single binar
 
 gosenbay has been tested on
 - macOS Catalina 10.15.2
-- ubuntu 20.04
 
 ## Requirements
 - go
@@ -32,8 +31,8 @@ $ make install
 
 ### Binary
 ```
-$ wget 
-$ tar -zxvf .tar.gz
+$ wget https://github.com/haradama/gosenbay/releases/download/v0.1/gosenbay_0.1_darwin_amd64.tar.gz
+$ tar -zxvf gosenbay_0.1_darwin_amd64.tar.gz
 ```
 
 ### Go build
