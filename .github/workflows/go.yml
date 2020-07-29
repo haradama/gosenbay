@@ -2,36 +2,42 @@ name: Go
 
 on:
   push:
-    branches: [ master ]
+    branches: [master]
   pull_request:
-    branches: [ master ]
+    branches: [master]
 
 jobs:
-
   build:
     name: Build
     runs-on: ubuntu-latest
     steps:
+      - name: Set up Go 1.x
+        uses: actions/setup-go@v2
+        with:
+          go-version: ^1.13
+        id: go
 
-    - name: Set up Go 1.x
-      uses: actions/setup-go@v2
-      with:
-        go-version: ^1.13
-      id: go
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v2
 
-    - name: Check out code into the Go module directory
-      uses: actions/checkout@v2
+      - name: Get dependencies
+        run: |
+          go get -v -t -d ./...
+          if [ -f Gopkg.toml ]; then
+              curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+              dep ensure
+          fi
+          export OPENCV_VERSION="4.3.0"
+          wget https://github.com/opencv/opencv/archive/${OPENCV_VERSION}.zip && \
+          unzip ${OPENCV_VERSION}.zip -d . && \
+          mkdir /tmp/opencv/opencv-${OPENCV_VERSION}/build && \
+          cd /tmp/opencv/opencv-${OPENCV_VERSION}/build/ && \
+          cmake -DOPENCV_GENERATE_PKGCONFIG=ON -D BUILD_TESTS=OFF -D BUILD_PERF_TESTS=OFF -D WITH_FFMPEG=ON -D WITH_TBB=ON .. && \
+          make -j "$(nproc)" && \
+          make install
 
-    - name: Get dependencies
-      run: |
-        go get -v -t -d ./...
-        if [ -f Gopkg.toml ]; then
-            curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
-            dep ensure
-        fi
+      - name: Build
+        run: go build -v .
 
-    - name: Build
-      run: go build -v .
-
-    - name: Test
-      run: go test -v .
+      - name: Test
+        run: go test -v .

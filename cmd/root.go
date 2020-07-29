@@ -16,8 +16,7 @@ var (
 
 	RootCmd = &cobra.Command{
 		Use:   "gosenbay",
-		Short: "Software to identify knwon plasmid",
-		Long:  "Software to identify knwon plasmid from metagenome using Minhash",
+		Short: "Software for embedding sensor-data in video",
 		Run: func(cmd *cobra.Command, args []string) {
 			cmd.Help()
 		},
