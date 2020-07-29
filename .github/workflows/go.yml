@@ -16,7 +16,7 @@ jobs:
         with:
           opencv-version: "4.3.0"
           WITH_FFMPEG: ON
-          DOPENCV_GENERATE_PKGCONFIG: ON
+          OPENCV_GENERATE_PKGCONFIG: ON
           WITH_TBB: ON
 
       - name: Set up Go 1.x
