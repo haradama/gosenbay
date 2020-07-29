@@ -81,6 +81,8 @@ Flags:
 $ ./gosenbay read -i video_path -m 0
 ```
 
+![](./assets/demo.gif)
+
 ### Related Links
 - [tetujin/SenbayKit-CLI](https://github.com/tetujin/SenbayKit-CLI) (The original)
 - [Senbay Platform Website](http://www.senbay.info)
