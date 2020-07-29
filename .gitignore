@@ -2,3 +2,4 @@ test
 example
 *.DS_Store
 gosenbay
+*.exe

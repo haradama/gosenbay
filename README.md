@@ -1,12 +1,11 @@
 # gosenbay
 
 ## About
-Gosenbay is an implementation of Senbay in golang. Features include single binary and multi-platform support.
+Gosenbay is an implementation of Senbay in golang. Features include single binary.
 
 gosenbay has been tested on
 - macOS Catalina 10.15.2
 - ubuntu 20.04
-- windows 10
 
 ## Requirements
 - go
@@ -32,6 +31,10 @@ $ make install
 ```
 
 ### Binary
+```
+$ wget 
+$ tar -zxvf .tar.gz
+```
 
 ### Go build
 ```
@@ -50,7 +53,7 @@ Usage:
 
 Available Commands:
   help        Help about any command
-  read        read
+  read        Reader to recognize the sensor data embedded in the video
   version     Print the version number of gosenbay
 
 Flags:
@@ -61,15 +64,17 @@ Use "gosenbay [command] --help" for more information about a command.
 
 ```
 $ gosenbay read -h
+Reader to recognize the sensor data embedded in the video
 
 Usage:
   gosenbay read [flags]
 
 Flags:
   -h, --help            help for read
-  -i, --infile string   Input file path
-  -m, --mode int        Senbay reader mode (required)
+  -i, --infile string   input file path
+  -m, --mode int        senbay reader mode (required)
                         0: video 1: camera 2: screenshot
+  -p, --preview         enable preview
 ```
 
 ### Example

@@ -17,15 +17,17 @@ type Reader struct {
 	cameraInput int
 	screenInput int
 	captureArea image.Rectangle
+	preview     bool
 }
 
 // NewSenbayReader returns a new SenbayReader based on mode
-func NewSenbayReader(mode int, videoInput string, cameraInput int, screenInput int) *Reader {
+func NewSenbayReader(mode int, videoInput string, cameraInput int, screenInput int, preview bool) *Reader {
 	senbayReader := &Reader{
 		mode:        mode,
 		videoInput:  videoInput,
 		cameraInput: cameraInput,
 		screenInput: screenInput,
+		preview:     preview,
 	}
 	return senbayReader
 }
@@ -69,11 +71,17 @@ func (reader Reader) Start() {
 	qrReader := qrcode.NewQRCodeReader()
 	mat := gocv.NewMat()
 	if reader.mode <= 1 {
-		title := "Senbay Reader"
-		window := gocv.NewWindow(title)
+		var title string
+		var window *gocv.Window
+		if reader.preview {
+			title = "Senbay Reader"
+			window = gocv.NewWindow(title)
+		}
 		for {
 			cap.Read(&mat)
-			window.IMShow(mat)
+			if reader.preview {
+				window.IMShow(mat)
+			}
 			img, err := mat.ToImage()
 			if err != nil {
 				panic(err)
@@ -87,8 +95,9 @@ func (reader Reader) Start() {
 				senbayDict := SenbayData.Decode(result.GetText())
 				fmt.Println(senbayDict)
 			}
-
-			window.WaitKey(1)
+			if reader.preview {
+				window.WaitKey(1)
+			}
 		}
 	} else if reader.mode == 2 {
 		for {
