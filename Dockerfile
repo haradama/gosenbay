@@ -2,7 +2,9 @@ FROM golang:1.14.2-buster
 
 LABEL maintainer="Masafumi Harada"
 
-ENV OPENCV_VERSION "4.3.0"
+ENV OPENCV_VERSION="4.3.0"
+
+WORKDIR /root
 
 RUN apt-get update -y && \
     apt-get upgrade -y && \
@@ -12,11 +14,12 @@ RUN apt-get update -y && \
 WORKDIR /tmp/opencv
 RUN wget https://github.com/opencv/opencv/archive/${OPENCV_VERSION}.zip && \
     unzip ${OPENCV_VERSION}.zip -d . && \
-    mkdir /tmp/opencv/opencv-${OPENCV_VERSION}/build && cd /tmp/opencv/opencv-${OPENCV_VERSION}/build/ && \
+    mkdir /tmp/opencv/opencv-${OPENCV_VERSION}/build && \
+    cd /tmp/opencv/opencv-${OPENCV_VERSION}/build/ && \
     cmake -DOPENCV_GENERATE_PKGCONFIG=ON -D BUILD_TESTS=OFF -D BUILD_PERF_TESTS=OFF -D WITH_FFMPEG=ON -D WITH_TBB=ON .. && \
     make -j "$(nproc)" && \
     make install
-WORKDIR /gosenbay
-ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:/usr/local/lib
+WORKDIR /root/gosenbay
+ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
 RUN rm -rf /tmp/opencv && \
     go build
