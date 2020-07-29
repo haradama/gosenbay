@@ -6,7 +6,6 @@ Gosenbay is an implementation of Senbay in golang. It features single binary and
 gosenbay tested on
 - macOS Catalina 10.15.2
 - Ubuntu 18.04 LTS
-- Windows 10
 
 ## Requirements
 - go
