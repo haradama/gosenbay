@@ -1,10 +1,12 @@
 # gosenbay
 
 ## About
-Gosenbay is an implementation of Senbay in golang. Features include single binary.
+Gosenbay is an implementation of Senbay in golang. It features single binary and multi-platforms.
 
-gosenbay has been tested on
+gosenbay tested on
 - macOS Catalina 10.15.2
+- Ubuntu 18.04 LTS
+- Windows 10
 
 ## Requirements
 - go
@@ -16,8 +18,11 @@ gosenbay has been tested on
 - golang.org/x/xerrors
 
 ## Installation
+
+### OpenCV
 If you have not installed opencv yet, please follow the instructions below.
 
+#### Mac, Ubuntu
 ```
 $ export OPENCV_VERSION="4.3.0"
 $ wget https://github.com/opencv/opencv/archive/${OPENCV_VERSION}.zip
@@ -29,7 +34,17 @@ $ make -j "$(nproc)"
 $ make install
 ```
 
+#### Windows
+```
+$ go get -u -d gocv.io/x/gocv
+$ chdir %GOPATH%\src\gocv.io\x\gocv
+$ win_build_opencv.cmd
+```
+
 ### Binary
+
+https://github.com/haradama/gosenbay/releases
+
 ```
 $ wget https://github.com/haradama/gosenbay/releases/download/v0.1/gosenbay_0.1_darwin_amd64.tar.gz
 $ tar -zxvf gosenbay_0.1_darwin_amd64.tar.gz
