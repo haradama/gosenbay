@@ -7,9 +7,9 @@ import (
 )
 
 type Options struct {
-	optIn      string
-	optMode    int
-	optPreview bool
+	optIn        string
+	optMode      int
+	optNographic bool
 }
 
 var (

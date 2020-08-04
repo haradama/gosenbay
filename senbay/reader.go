@@ -1,6 +1,7 @@
 package senbay
 
 import (
+	"encoding/json"
 	"fmt"
 	"image"
 
@@ -17,17 +18,17 @@ type Reader struct {
 	cameraInput int
 	screenInput int
 	captureArea image.Rectangle
-	preview     bool
+	nographic   bool
 }
 
 // NewSenbayReader returns a new SenbayReader based on mode
-func NewSenbayReader(mode int, videoInput string, cameraInput int, screenInput int, preview bool) *Reader {
+func NewSenbayReader(mode int, videoInput string, cameraInput int, screenInput int, nographic bool) *Reader {
 	senbayReader := &Reader{
 		mode:        mode,
 		videoInput:  videoInput,
 		cameraInput: cameraInput,
 		screenInput: screenInput,
-		preview:     preview,
+		nographic:   nographic,
 	}
 	return senbayReader
 }
@@ -73,13 +74,13 @@ func (reader Reader) Start() {
 	if reader.mode <= 1 {
 		var title string
 		var window *gocv.Window
-		if reader.preview {
+		if !reader.nographic {
 			title = "Senbay Reader"
 			window = gocv.NewWindow(title)
 		}
 		for {
 			cap.Read(&mat)
-			if reader.preview {
+			if !reader.nographic {
 				window.IMShow(mat)
 			}
 			img, err := mat.ToImage()
@@ -93,9 +94,13 @@ func (reader Reader) Start() {
 			result, err := qrReader.Decode(bmp, nil)
 			if err == nil {
 				senbayDict := SenbayData.Decode(result.GetText())
-				fmt.Println(senbayDict)
+				bytes, err := json.Marshal(senbayDict)
+				if err != nil {
+					panic(err)
+				}
+				fmt.Println(string(bytes))
 			}
-			if reader.preview {
+			if !reader.nographic {
 				window.WaitKey(1)
 			}
 		}
@@ -113,7 +118,11 @@ func (reader Reader) Start() {
 			result, err := qrReader.Decode(bmp, nil)
 			if err == nil {
 				senbayDict := SenbayData.Decode(result.GetText())
-				fmt.Println(senbayDict)
+				bytes, err := json.Marshal(senbayDict)
+				if err != nil {
+					panic(err)
+				}
+				fmt.Println(string(bytes))
 			}
 		}
 	}

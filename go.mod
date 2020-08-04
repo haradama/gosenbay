@@ -9,6 +9,6 @@ require (
 	github.com/lxn/win v0.0.0-20191128105842-2da648fda5b4 // indirect
 	github.com/makiuchi-d/gozxing v0.0.0-20190830103442-eaff64b1ceb7
 	github.com/spf13/cobra v1.0.0
-	gocv.io/x/gocv v0.23.0
+	gocv.io/x/gocv v0.24.0
 	golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543 // indirect
 )

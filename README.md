@@ -22,7 +22,12 @@ gosenbay tested on
 ### OpenCV
 If you have not installed opencv yet, please follow the instructions below.
 
-#### Mac, Ubuntu
+#### Mac
+```
+$ brew install opencv
+```
+
+#### Ubuntu
 ```
 $ export OPENCV_VERSION="4.3.0"
 $ wget https://github.com/opencv/opencv/archive/${OPENCV_VERSION}.zip
@@ -88,7 +93,7 @@ Flags:
   -i, --infile string   input file path
   -m, --mode int        senbay reader mode (required)
                         0: video 1: camera 2: screenshot
-  -p, --preview         enable preview
+  -n, --nographic       disable preview
 ```
 
 ### Example
