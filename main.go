@@ -3,7 +3,7 @@ package main
 import (
 	"io"
 
-	"gosenbay/cmd"
+	"github.com/haradama/gosenbay/cmd"
 )
 
 func main() {

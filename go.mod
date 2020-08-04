@@ -1,4 +1,4 @@
-module gosenbay
+module github.com/haradama/gosenbay
 
 go 1.13
 

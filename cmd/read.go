@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"gosenbay/senbay"
+	"github.com/haradama/gosenbay/senbay"
 
 	"github.com/spf13/cobra"
 )
