@@ -90,8 +90,19 @@ Flags:
 ```
 
 ### Example
-```
-$ ./gosenbay read -i video_path -m 0
+```go
+package main
+
+import (
+  "fmt"
+  
+  "gosenbay/senbay"
+)
+
+sd = SenbayData()
+sd.add_number('KEY1',value1);
+sd.add_text('KEY2','value2');
+print(sd.encode());
 ```
 
 ![](./assets/demo.gif)
