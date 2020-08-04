@@ -11,6 +11,12 @@ import (
 	"gocv.io/x/gocv"
 )
 
+const (
+	modeVideoInput  = 0
+	modeCameraInput = 1
+	modeScreenInput = 2
+)
+
 // Reader describe an reader to interpret senbay style contents
 type Reader struct {
 	mode        int
@@ -43,17 +49,17 @@ func (reader Reader) Start() {
 	var cap *gocv.VideoCapture
 	var err error
 	switch reader.mode {
-	case 0:
+	case modeVideoInput:
 		cap, err = gocv.VideoCaptureFile(reader.videoInput)
 		if err != nil {
 			panic(err)
 		}
-	case 1:
+	case modeCameraInput:
 		cap, err = gocv.VideoCaptureDevice(reader.cameraInput)
 		if err != nil {
 			panic(err)
 		}
-	case 2:
+	case modeScreenInput:
 		bounds := screenshot.GetDisplayBounds(reader.screenInput)
 		_, err := screenshot.CaptureRect(bounds)
 		if err != nil {

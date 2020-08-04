@@ -6,13 +6,11 @@ Gosenbay is an implementation of Senbay in golang. It features single binary and
 gosenbay tested on
 - macOS Catalina 10.15.2
 - Ubuntu 18.04 LTS
-- Windows 10
 
 ## Requirements
 - go
 - opencv
 - github.com/kbinani/screenshot
-- github.com/makiuchi-d/gozxing
 - github.com/spf13/cobra
 - gocv.io/x/gocv
 - golang.org/x/xerrors
@@ -29,13 +27,8 @@ $ brew install opencv
 
 #### Ubuntu
 ```
-$ export OPENCV_VERSION="4.3.0"
-$ wget https://github.com/opencv/opencv/archive/${OPENCV_VERSION}.zip
-$ unzip ${OPENCV_VERSION}.zip -d .
-$ mkdir ./opencv-${OPENCV_VERSION}/build
-$ cd ./opencv-${OPENCV_VERSION}/build/
-$ cmake -DOPENCV_GENERATE_PKGCONFIG=ON -D BUILD_TESTS=OFF -D BUILD_PERF_TESTS=OFF -D WITH_FFMPEG=ON -D WITH_TBB=ON ..
-$ make -j "$(nproc)"
+$ go get -u -d gocv.io/x/gocv
+$ cd $GOPATH/src/gocv.io/x/gocv
 $ make install
 ```
 
