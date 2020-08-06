@@ -46,30 +46,6 @@ func (reader Reader) SetCaptureArea(captureArea image.Rectangle) {
 
 // Start interpreting captured image recorded in senbay style
 func (reader Reader) Start() {
-	var cap *gocv.VideoCapture
-	var err error
-	switch reader.mode {
-	case modeVideoInput:
-		cap, err = gocv.VideoCaptureFile(reader.videoInput)
-		if err != nil {
-			panic(err)
-		}
-	case modeCameraInput:
-		cap, err = gocv.VideoCaptureDevice(reader.cameraInput)
-		if err != nil {
-			panic(err)
-		}
-	case modeScreenInput:
-		bounds := screenshot.GetDisplayBounds(reader.screenInput)
-		_, err := screenshot.CaptureRect(bounds)
-		if err != nil {
-			panic(err)
-		}
-	default:
-		msg := "error: The mode value should be taken 0(=video), 1(=camera), or 2(=screen)."
-		panic(msg)
-	}
-
 	PN := 121
 	SenbayData, err := NewSenbayData(PN)
 	if err != nil {
@@ -77,7 +53,19 @@ func (reader Reader) Start() {
 	}
 	qrReader := qrcode.NewQRCodeReader()
 	mat := gocv.NewMat()
-	if reader.mode <= 1 {
+	var cap *gocv.VideoCapture
+	if reader.mode == modeVideoInput || reader.mode == modeCameraInput {
+		if reader.mode == modeVideoInput {
+			cap, err = gocv.VideoCaptureFile(reader.videoInput)
+			if err != nil {
+				panic(err)
+			}
+		} else {
+			cap, err = gocv.VideoCaptureDevice(reader.cameraInput)
+			if err != nil {
+				panic(err)
+			}
+		}
 		var title string
 		var window *gocv.Window
 		if !reader.nographic {
@@ -86,9 +74,6 @@ func (reader Reader) Start() {
 		}
 		for {
 			cap.Read(&mat)
-			if !reader.nographic {
-				window.IMShow(mat)
-			}
 			img, err := mat.ToImage()
 			if err != nil {
 				panic(err)
@@ -107,10 +92,17 @@ func (reader Reader) Start() {
 				fmt.Println(string(bytes))
 			}
 			if !reader.nographic {
+				window.IMShow(mat)
 				window.WaitKey(1)
 			}
 		}
-	} else if reader.mode == 2 {
+	} else if reader.mode == modeScreenInput {
+		bounds := screenshot.GetDisplayBounds(reader.screenInput)
+		_, err := screenshot.CaptureRect(bounds)
+		if err != nil {
+			panic(err)
+		}
+
 		for {
 			bounds := screenshot.GetDisplayBounds(reader.screenInput)
 			img, err := screenshot.CaptureRect(bounds)
@@ -131,5 +123,8 @@ func (reader Reader) Start() {
 				fmt.Println(string(bytes))
 			}
 		}
+	} else {
+		msg := "error: The mode value should be taken 0(=video), 1(=camera), or 2(=screen)."
+		panic(msg)
 	}
 }
