@@ -91,27 +91,33 @@ Flags:
 ```
 
 ### Example
+#### Go
 ```go
 package main
 
 import (
   "fmt"
   
-  "gosenbay/senbay"
+  "github.com/haradama/gosenbay/senbay"
 )
 
 func main() {
   PN := 121
-  SenbayData, _ := NewSenbayData(PN)
+  SD, _ := senbay.NewSenbayData(PN)
 
-  SenbayData.AddInt()
-  SenbayData.AddText()
+  value1 := 123
+  SD.AddInt("KEY1", value1)
+  SD.AddText("KEY2", "value2")
 
-  result := SenbayData.Encode(true)
+  result := SD.Encode(true)
   fmt.Println(result)
 }
 ```
 
+#### Command line
+```
+$ ./gosenbay read -i example.mp4 -m 0
+```
 ![](./assets/demo.gif)
 
 ### Related Links
