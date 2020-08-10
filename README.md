@@ -6,6 +6,7 @@ Gosenbay is an implementation of Senbay in golang. It features single binary and
 gosenbay tested on
 - macOS Catalina 10.15.2
 - Ubuntu 18.04 LTS
+- Windows 10
 
 ## Requirements
 - go
@@ -99,10 +100,16 @@ import (
   "gosenbay/senbay"
 )
 
-sd = SenbayData()
-sd.add_number('KEY1',value1);
-sd.add_text('KEY2','value2');
-print(sd.encode());
+func main() {
+	PN := 121
+  SenbayData, _ := NewSenbayData(PN)
+
+  SenbayData.AddInt()
+  SenbayData.AddText()
+
+  result := SenbayData.Encode(true)
+  fmt.Println(result)
+}
 ```
 
 ![](./assets/demo.gif)

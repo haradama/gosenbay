@@ -3,3 +3,7 @@ example
 *.DS_Store
 gosenbay
 *.exe
+*.tar.gz
+*.icloud
+.vscode/
+*.python-version
