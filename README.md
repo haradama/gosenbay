@@ -101,7 +101,7 @@ import (
 )
 
 func main() {
-	PN := 121
+  PN := 121
   SenbayData, _ := NewSenbayData(PN)
 
   SenbayData.AddInt()
