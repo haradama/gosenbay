@@ -92,6 +92,11 @@ Flags:
 
 ### Example
 #### Go
+
+```
+$ go get github.com/haradama/gosenbay/senbay
+```
+
 ```go
 package main
 
