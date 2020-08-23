@@ -380,14 +380,14 @@ func (senbayFormat Format) decode(text string) string {
 	return decodedText
 }
 
-// Frame is
+// A SenbayData is
 type SenbayData struct {
 	senbayData map[string]string
 	PN         int
 	SF         *Format
 }
 
-// NewSenbayData returns a new Frame based on PN
+// NewSenbayData returns a new SenbayData struct based on PN
 func NewSenbayData(PN int) (*SenbayData, error) {
 	SenbayData := &SenbayData{
 		PN: PN,
@@ -401,11 +401,23 @@ func NewSenbayData(PN int) (*SenbayData, error) {
 	return SenbayData, err
 }
 
+// AddInt is
 func (SD SenbayData) AddInt(key string, value int) {
 	SD.senbayData[key] = strconv.Itoa(value)
 }
 
-func (SD SenbayData) AddFloat(key string, value float64) {
+// AddInt64 will add int64 value to SenbayData
+func (SD SenbayData) AddInt64(key string, value int64) {
+	SD.senbayData[key] = strconv.FormatInt(value, 10)
+}
+
+// AddFloat will add float value to SenbayData
+func (SD SenbayData) AddFloat(key string, value float32) {
+	SD.senbayData[key] = strconv.FormatFloat(float64(value), 'f', -1, 64)
+}
+
+// AddFloat64 will add float64 value to SenbayData
+func (SD SenbayData) AddFloat64(key string, value float64) {
 	SD.senbayData[key] = strconv.FormatFloat(value, 'f', -1, 64)
 }
 
@@ -414,7 +426,7 @@ func (SD SenbayData) AddText(key string, value string) {
 	SD.senbayData[key] = "'" + value + "'"
 }
 
-// Clear wil clear the data in SenbayData
+// Clear will clear the data in SenbayData
 func (SD SenbayData) Clear() {
 	for key := range SD.senbayData {
 		delete(SD.senbayData, key)
