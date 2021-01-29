@@ -1,7 +1,7 @@
 # gosenbay
 
 ## About
-Gosenbay is an implementation of Senbay in golang. It features single binary and multi-platforms.
+gosenbay is a golang implementation of senbay that is intended to work on multiple platforms.
 
 gosenbay tested on
 - macOS Catalina 10.15.2
@@ -21,19 +21,19 @@ gosenbay tested on
 ### OpenCV
 If you have not installed opencv yet, please follow the instructions below.
 
-#### Mac
+##### Mac
 ```
 $ brew install opencv
 ```
 
-#### Ubuntu
+##### Ubuntu
 ```
 $ go get -u -d gocv.io/x/gocv
 $ cd $GOPATH/src/gocv.io/x/gocv
 $ make install
 ```
 
-#### Windows
+##### Windows
 ```
 $ go get -u -d gocv.io/x/gocv
 $ chdir %GOPATH%\src\gocv.io\x\gocv
@@ -57,6 +57,9 @@ $ go build
 ```
 
 ## Usage
+
+gosenbay can be used as a command line tool and a library to convert sensor data to senbay format.
+
 ```
 $ gosenbay -h
 
@@ -90,12 +93,9 @@ Flags:
   -n, --nographic       disable preview
 ```
 
-### Example
-#### Go
+### Go example
 
-```
-$ go get github.com/haradama/gosenbay/senbay
-```
+In this example, int and string value are converted to senbay format.
 
 ```go
 package main
@@ -145,4 +145,4 @@ $ ./gosenbay read -i example.mp4 -m 0
 ```
 
 ### License
-Gosenbay is available under the Apache License, Version 2.0 license. See the LICENSE file for more info.
+gosenbay is available under the Apache License, Version 2.0 license. See the LICENSE file for more info.
