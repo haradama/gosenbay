@@ -1,7 +1,11 @@
 # gosenbay
 
-## About
 gosenbay is a golang implementation of senbay that is intended to work on multiple platforms.
+
+[![GoDoc](https://godoc.org/github.com/haradama/gosenbay?status.svg)](https://godoc.org/github.com/haradama/gosenbay)
+[![Go Report Card](https://goreportcard.com/badge/github.com/haradama/gosenbay)](https://goreportcard.com/report/github.com/haradama/gosenbay)
+
+## Overview
 
 gosenbay tested on
 - macOS Catalina 10.15.2
@@ -21,19 +25,19 @@ gosenbay tested on
 ### OpenCV
 If you have not installed opencv yet, please follow the instructions below.
 
-##### Mac
+- Mac
 ```
 $ brew install opencv
 ```
 
-##### Ubuntu
+- Ubuntu
 ```
 $ go get -u -d gocv.io/x/gocv
 $ cd $GOPATH/src/gocv.io/x/gocv
 $ make install
 ```
 
-##### Windows
+- Windows
 ```
 $ go get -u -d gocv.io/x/gocv
 $ chdir %GOPATH%\src\gocv.io\x\gocv
@@ -60,6 +64,8 @@ $ go build
 
 gosenbay can be used as a command line tool and a library to convert sensor data to senbay format.
 
+### Help
+#### gosenbay
 ```
 $ gosenbay -h
 
@@ -78,6 +84,7 @@ Flags:
 Use "gosenbay [command] --help" for more information about a command.
 ```
 
+#### gosenbay read
 ```
 $ gosenbay read -h
 Reader to recognize the sensor data embedded in the video

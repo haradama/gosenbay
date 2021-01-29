@@ -1,3 +1,5 @@
+// Package senbay provides the functions to encode and
+// decode to the senbay format.
 package senbay
 
 import (
@@ -14,6 +16,16 @@ type BaseX struct {
 	Table        []int
 	ReverseTable []int
 }
+
+var (
+	reversedKeys = map[string]string{
+		"TIME": "0", "LONG": "1", "LATI": "2",
+		"ALTI": "3", "ACCX": "4", "ACCY": "5",
+		"ACCZ": "6", "YAW": "7", "ROLL": "8",
+		"PITC": "9", "HEAD": "A", "SPEE": "B",
+		"BRIG": "C", "AIRP": "D", "HTBT": "E",
+	}
+)
 
 // NewBaseX returns a new BaseX based on PN
 func NewBaseX(positionalNotation int) (*BaseX, error) {
@@ -86,6 +98,7 @@ func NewBaseX(positionalNotation int) (*BaseX, error) {
 	return baseX, nil
 }
 
+// encodeLongValue returns
 func (baseX BaseX) encodeLongValue(lVal int) []rune {
 	var isNegative bool
 	if lVal < 0 {
@@ -252,15 +265,9 @@ func NewSenbayFormat(PN int) (*Format, error) {
 		return nil, err
 	}
 	senbayFormat := &Format{
-		ReversedKeys: map[string]string{
-			"TIME": "0", "LONG": "1", "LATI": "2",
-			"ALTI": "3", "ACCX": "4", "ACCY": "5",
-			"ACCZ": "6", "YAW": "7", "ROLL": "8",
-			"PITC": "9", "HEAD": "A", "SPEE": "B",
-			"BRIG": "C", "AIRP": "D", "HTBT": "E",
-		},
-		PN:    PN,
-		baseX: baseX,
+		ReversedKeys: reversedKeys,
+		PN:           PN,
+		baseX:        baseX,
 	}
 
 	return senbayFormat, nil
@@ -337,6 +344,7 @@ func (senbayFormat Format) encode(text string) string {
 	return encodedText
 }
 
+// decode
 func (senbayFormat Format) decode(text string) string {
 	var decodedText string
 	var count int
@@ -380,61 +388,61 @@ func (senbayFormat Format) decode(text string) string {
 	return decodedText
 }
 
-// A SenbayData is
-type SenbayData struct {
+// A Data is
+type Data struct {
 	senbayData map[string]string
 	PN         int
 	SF         *Format
 }
 
 // NewSenbayData returns a new SenbayData struct based on PN
-func NewSenbayData(PN int) (*SenbayData, error) {
-	SenbayData := &SenbayData{
+func NewSenbayData(PN int) (*Data, error) {
+	SD := &Data{
 		PN: PN,
 	}
 	SF, err := NewSenbayFormat(PN)
 	if err != nil {
-		return SenbayData, err
+		return SD, err
 	}
-	SenbayData.senbayData = map[string]string{}
-	SenbayData.SF = SF
-	return SenbayData, err
+	SD.senbayData = map[string]string{}
+	SD.SF = SF
+	return SD, err
 }
 
-// AddInt is
-func (SD SenbayData) AddInt(key string, value int) {
+// AddInt add int value to senbayData
+func (SD Data) AddInt(key string, value int) {
 	SD.senbayData[key] = strconv.Itoa(value)
 }
 
-// AddInt64 will add int64 value to SenbayData
-func (SD SenbayData) AddInt64(key string, value int64) {
+// AddInt64 add int64 value to senbayData
+func (SD Data) AddInt64(key string, value int64) {
 	SD.senbayData[key] = strconv.FormatInt(value, 10)
 }
 
-// AddFloat will add float value to SenbayData
-func (SD SenbayData) AddFloat(key string, value float32) {
+// AddFloat add float value to senbayData
+func (SD Data) AddFloat(key string, value float32) {
 	SD.senbayData[key] = strconv.FormatFloat(float64(value), 'f', -1, 64)
 }
 
-// AddFloat64 will add float64 value to SenbayData
-func (SD SenbayData) AddFloat64(key string, value float64) {
+// AddFloat64 add float64 value to senbayData
+func (SD Data) AddFloat64(key string, value float64) {
 	SD.senbayData[key] = strconv.FormatFloat(value, 'f', -1, 64)
 }
 
-// AddText add text to data in SenbayData
-func (SD SenbayData) AddText(key string, value string) {
+// AddText add string value to senbayData
+func (SD Data) AddText(key string, value string) {
 	SD.senbayData[key] = "'" + value + "'"
 }
 
-// Clear will clear the data in SenbayData
-func (SD SenbayData) Clear() {
+// Clear empties the contents of Data
+func (SD Data) Clear() {
 	for key := range SD.senbayData {
 		delete(SD.senbayData, key)
 	}
 }
 
-// Encode will encode the data in SenbayData
-func (SD SenbayData) Encode(compress bool) string {
+// Encode converts the data to decoded.
+func (SD Data) Encode(compress bool) string {
 	var formattedData string
 	var count int
 	for k, v := range SD.senbayData {
@@ -450,8 +458,8 @@ func (SD SenbayData) Encode(compress bool) string {
 	return "V:3," + formattedData
 }
 
-// Decode will decode the encoded text
-func (SD SenbayData) Decode(text string) map[string]string {
+// Decode converts the decoded text to the original data.
+func (SD Data) Decode(text string) map[string]string {
 	senbayMap := map[string]string{}
 	elements := strings.Split(text, ",")
 	var isCompress bool
