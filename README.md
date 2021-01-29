@@ -2,6 +2,7 @@
 
 gosenbay is a golang implementation of senbay that is intended to work on multiple platforms.
 
+[![CircleCI](https://circleci.com/gh/haradama/gosenbay.svg?style=shield)](https://circleci.com/gh/haradama/gosenbay)
 [![GoDoc](https://godoc.org/github.com/haradama/gosenbay?status.svg)](https://godoc.org/github.com/haradama/gosenbay)
 [![Go Report Card](https://goreportcard.com/badge/github.com/haradama/gosenbay)](https://goreportcard.com/report/github.com/haradama/gosenbay)
 
