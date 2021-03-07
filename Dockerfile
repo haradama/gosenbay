@@ -1,18 +1,12 @@
-FROM golang:1.14.2-buster
+FROM gocv/opencv:4.5.1
 
 LABEL maintainer="Masafumi Harada"
 
 WORKDIR /root
 
-RUN apt-get update -y && \
-    apt-get upgrade -y && \
-    apt-get install -y gcc make git build-essential cmake sudo && \
-    go get -u -d gocv.io/x/gocv && \
-    cd $GOPATH/src/gocv.io/x/gocv && \
-    make install && \
-    cd /root && \
+RUN apt update -y && \
     git clone https://github.com/haradama/gosenbay && \
     cd /root/gosenbay && \
-    go build
+    go install
 
-WORKDIR /root/gosenbay
+WORKDIR /
