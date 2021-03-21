@@ -10,6 +10,8 @@ import (
 	"strings"
 )
 
+const keyCodeEsc = 27
+
 // BaseX descrive base number based on PN
 type BaseX struct {
 	PN           int
