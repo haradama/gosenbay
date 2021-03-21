@@ -94,6 +94,10 @@ func (reader Reader) Start() {
 			if !reader.nographic {
 				window.IMShow(mat)
 				window.WaitKey(1)
+
+				if window.WaitKey(1) == keyCodeEsc {
+					break
+				}
 			}
 		}
 	} else if reader.mode == modeScreenInput {

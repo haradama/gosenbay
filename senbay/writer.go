@@ -8,8 +8,6 @@ import (
 	"gocv.io/x/gocv"
 )
 
-const keyCodeEsc = 27
-
 type SenbayFrame struct {
 	qrBoxSize         uint
 	qrErrorCorrection int
@@ -54,7 +52,8 @@ func (writer Writer) Start() {
 	title := "gosenbay"
 	window := gocv.NewWindow(title)
 
-	webcam, err := gocv.OpenVideoCapture(writer.cameraNumber)
+	cameraNumber := int(writer.cameraNumber)
+	webcam, err := gocv.OpenVideoCapture(cameraNumber)
 	if err != nil {
 		panic(err)
 	}
