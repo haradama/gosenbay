@@ -7,9 +7,16 @@ import (
 )
 
 type Options struct {
-	optIn        string
-	optMode      int
-	optNographic bool
+	optIn           string
+	optOut          string
+	optMode         int
+	optCameraNumber uint
+	optFps          uint
+	optCodec        string
+	optNographic    bool
+	optWidth        uint
+	optHeight       uint
+	optQrSize       uint
 }
 
 var (
