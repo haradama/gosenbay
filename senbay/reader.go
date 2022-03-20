@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"image"
+	"log"
+	"strconv"
 
 	"github.com/kbinani/screenshot"
 	"github.com/makiuchi-d/gozxing"
@@ -11,15 +13,17 @@ import (
 	"gocv.io/x/gocv"
 )
 
+type InputMode int
+
 const (
-	modeVideoInput  = 0
-	modeCameraInput = 1
-	modeScreenInput = 2
+	modeVideoInput InputMode = iota
+	modeCameraInput
+	modeScreenInput
 )
 
 // Reader describe an reader to interpret senbay style contents
 type Reader struct {
-	mode        int
+	mode        InputMode
 	videoInput  string
 	cameraInput int
 	screenInput int
@@ -27,12 +31,44 @@ type Reader struct {
 	nographic   bool
 }
 
-// NewSenbayReader returns a new SenbayReader based on mode
-func NewSenbayReader(mode int, videoInput string, cameraInput int, screenInput int, nographic bool) *Reader {
+func NewSenbayReader(mode InputMode, videoInput string, cameraInput int, screenInput int, nographic bool) *Reader {
 	senbayReader := &Reader{
 		mode:        mode,
 		videoInput:  videoInput,
 		cameraInput: cameraInput,
+		screenInput: screenInput,
+		nographic:   nographic,
+	}
+	return senbayReader
+}
+
+// NewSenbayVideoReader returns a new SenbayReader for a video
+func NewSenbayVideoReader(videoInput string, nographic bool) *Reader {
+	mode := modeVideoInput
+	senbayReader := &Reader{
+		mode:       mode,
+		videoInput: videoInput,
+		nographic:  nographic,
+	}
+	return senbayReader
+}
+
+// NewSenbayVideoReader returns a new SenbayReader for a camera
+func NewSenbayCameraReader(cameraInput int, nographic bool) *Reader {
+	mode := modeCameraInput
+	senbayReader := &Reader{
+		mode:        mode,
+		cameraInput: cameraInput,
+		nographic:   nographic,
+	}
+	return senbayReader
+}
+
+// NewSenbayVideoReader returns a new SenbayReader for a screen
+func NewSenbayScreenReader(screenInput int, nographic bool) *Reader {
+	mode := modeCameraInput
+	senbayReader := &Reader{
+		mode:        mode,
 		screenInput: screenInput,
 		nographic:   nographic,
 	}
@@ -45,11 +81,12 @@ func (reader Reader) SetCaptureArea(captureArea image.Rectangle) {
 }
 
 // Start interpreting captured image recorded in senbay style
-func (reader Reader) Start() {
+func (reader Reader) Start(fn HandlerFunc) {
+	handler := NewHandler(fn)
 	PN := 121
 	SenbayData, err := NewSenbayData(PN)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	qrReader := qrcode.NewQRCodeReader()
 	mat := gocv.NewMat()
@@ -58,12 +95,12 @@ func (reader Reader) Start() {
 		if reader.mode == modeVideoInput {
 			cap, err = gocv.VideoCaptureFile(reader.videoInput)
 			if err != nil {
-				panic(err)
+				log.Fatal(err)
 			}
 		} else {
 			cap, err = gocv.VideoCaptureDevice(reader.cameraInput)
 			if err != nil {
-				panic(err)
+				log.Fatal(err)
 			}
 		}
 		var title string
@@ -76,20 +113,25 @@ func (reader Reader) Start() {
 			cap.Read(&mat)
 			img, err := mat.ToImage()
 			if err != nil {
-				panic(err)
+				log.Fatal(err)
 			}
 			bmp, err := gozxing.NewBinaryBitmapFromImage(img)
 			if err != nil {
-				panic(err)
+				log.Fatal(err)
 			}
 			result, err := qrReader.Decode(bmp, nil)
 			if err == nil {
-				senbayDict := SenbayData.Decode(result.GetText())
-				bytes, err := json.Marshal(senbayDict)
-				if err != nil {
-					panic(err)
+				senbayDict := map[string]interface{}{}
+				for key, value := range SenbayData.Decode(result.GetText()) {
+					parsedvalue, err := strconv.ParseFloat(value, 64)
+					if err == nil {
+						senbayDict[key] = parsedvalue
+						continue
+					} else {
+						senbayDict[key] = value
+					}
 				}
-				fmt.Println(string(bytes))
+				handler.Handle(senbayDict)
 			}
 			if !reader.nographic {
 				window.IMShow(mat)
@@ -104,31 +146,44 @@ func (reader Reader) Start() {
 		bounds := screenshot.GetDisplayBounds(reader.screenInput)
 		_, err := screenshot.CaptureRect(bounds)
 		if err != nil {
-			panic(err)
+			log.Fatal(err)
 		}
 
 		for {
 			bounds := screenshot.GetDisplayBounds(reader.screenInput)
 			img, err := screenshot.CaptureRect(bounds)
 			if err != nil {
-				panic(err)
+				log.Fatal(err)
 			}
 			bmp, err := gozxing.NewBinaryBitmapFromImage(img)
 			if err != nil {
-				panic(err)
+				log.Fatal(err)
 			}
 			result, err := qrReader.Decode(bmp, nil)
 			if err == nil {
-				senbayDict := SenbayData.Decode(result.GetText())
-				bytes, err := json.Marshal(senbayDict)
-				if err != nil {
-					panic(err)
+				senbayDict := map[string]interface{}{}
+				for key, value := range SenbayData.Decode(result.GetText()) {
+					parsedvalue, err := strconv.ParseFloat(value, 64)
+					if err == nil {
+						senbayDict[key] = parsedvalue
+						continue
+					} else {
+						senbayDict[key] = value
+					}
 				}
-				fmt.Println(string(bytes))
+				handler.Handle(senbayDict)
 			}
 		}
 	} else {
 		msg := "error: The mode value should be taken 0(=video), 1(=camera), or 2(=screen)."
-		panic(msg)
+		log.Fatal(msg)
 	}
+}
+
+func ShowResult(senbayDict map[string]interface{}) {
+	bytes, err := json.Marshal(senbayDict)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(string(bytes))
 }

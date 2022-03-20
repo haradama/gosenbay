@@ -18,7 +18,8 @@ var readCmd = &cobra.Command{
 	Use:   "read",
 	Short: "Sample reader to decode the sensor data embedded in the video",
 	Run: func(cmd *cobra.Command, args []string) {
-		senbayReader := senbay.NewSenbayReader(o.optMode, o.optIn, 0, 0, o.optNographic)
-		senbayReader.Start()
+		optMode := senbay.InputMode(o.optMode)
+		senbayReader := senbay.NewSenbayReader(optMode, o.optIn, 0, 0, o.optNographic)
+		senbayReader.Start(senbay.ShowResult)
 	},
 }
