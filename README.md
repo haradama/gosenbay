@@ -96,8 +96,6 @@ Usage:
 Flags:
   -h, --help            help for read
   -i, --infile string   input file path
-  -m, --mode int        senbay reader mode (required)
-                        0: video 1: camera 2: screenshot
   -n, --nographic       disable preview
 ```
 
