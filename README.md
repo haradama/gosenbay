@@ -131,7 +131,7 @@ func main() {
 ```
 $ ./gosenbay read -i example.mp4 -m 0
 ```
-![](./assets/demo.gif)
+![](./image/demo.gif)
 
 ### Related Links
 - [tetujin/SenbayKit-CLI](https://github.com/tetujin/SenbayKit-CLI) (The original)
