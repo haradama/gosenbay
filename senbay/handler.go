@@ -1,5 +1,11 @@
 package senbay
 
+import (
+	"encoding/json"
+	"fmt"
+	"log"
+)
+
 type Handler interface {
 	Handle(senbayDict map[string]interface{})
 }
@@ -16,4 +22,12 @@ func NewHandler(fn HandlerFunc) Handler {
 
 func (h *handler) Handle(senbayDict map[string]interface{}) {
 	h.fn(senbayDict)
+}
+
+func ShowResult(senbayDict map[string]interface{}) {
+	bytes, err := json.Marshal(senbayDict)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(string(bytes))
 }

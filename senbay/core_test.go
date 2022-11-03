@@ -1,320 +1,565 @@
+// Package senbay provides the functions to encode and
+// decode to the senbay format.
 package senbay
 
 import (
-	"math"
+	"reflect"
 	"testing"
 )
 
-// Test BaseX
 func TestNewBaseX(t *testing.T) {
-	_, err := NewBaseX(121)
-	if err != nil {
-		t.Error("failed test", err)
+	type args struct {
+		positionalNotation int
 	}
-
-	_, err = NewBaseX(200)
-	if err == nil {
-		t.Error("failed test")
+	tests := []struct {
+		name    string
+		args    args
+		want    *BaseX
+		wantErr bool
+	}{
+		// TODO: Add test cases.
 	}
-}
-func TestBaseXEncodeLongValue(t *testing.T) {
-	baseX, err := NewBaseX(121)
-	if err != nil {
-		t.Error("failed test", err)
-	}
-
-	var expect []rune
-	expect = []rune{0}
-	result := baseX.encodeLongValue(0)
-	if result[0] != expect[0] {
-		t.Error("\nresult:", result)
-	}
-	result = baseX.encodeLongValue(100000)
-	expect = []rune{7, 106, 60}
-	for i, s := range result {
-		if s != expect[i] {
-			t.Error("\nresult:", result, "\nexpect:", expect)
-		}
-	}
-	result = baseX.encodeLongValue(200)
-	expect = []rune{2, 85}
-	for i, s := range result {
-		if s != expect[i] {
-			t.Error("\nresult:", result, "\nexpect:", expect)
-		}
-	}
-	result = baseX.encodeLongValue(-200)
-	expect = []rune{45, 2, 85}
-	for i, s := range result {
-		if s != expect[i] {
-			t.Error("\nresult:", result, "\nexpect:", expect)
-		}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := NewBaseX(tt.args.positionalNotation)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("NewBaseX() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("NewBaseX() = %v, want %v", got, tt.want)
+			}
+		})
 	}
 }
 
-func TestBaseXEncodeDoubleValue(t *testing.T) {
-	baseX, err := NewBaseX(121)
-	if err != nil {
-		t.Error("failed test", err)
+func TestBaseX_encodeLongValue(t *testing.T) {
+	type fields struct {
+		PN           int
+		Table        []int
+		ReverseTable []int
 	}
-	var expect []rune
-
-	result := baseX.encodeDoubleValue(0)
-	expect = []rune{0}
-	if result[0] != expect[0] {
-		t.Error("\nresult:", result, "\nexpect:", expect)
+	type args struct {
+		lVal int
 	}
-
-	result = baseX.encodeDoubleValue(-3)
-	expect = []rune{45, 4}
-	for i, s := range result {
-		if s != expect[i] {
-			t.Error("\nresult:", result, "\nexpect:", expect)
-		}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   []rune
+	}{
+		// TODO: Add test cases.
 	}
-
-	result = baseX.encodeDoubleValue(3.14)
-	expect = []rune{4, 46, 15}
-	for i, s := range result {
-		if s != expect[i] {
-			t.Error("\nresult:", result, "\nexpect:", expect)
-		}
-	}
-	result = baseX.encodeDoubleValue(-3.04)
-	expect = []rune{45, 4, 46, 0, 5}
-	for i, s := range result {
-		if s != expect[i] {
-			t.Error("\nresult:", result, "\nexpect:", expect)
-		}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			baseX := BaseX{
+				PN:           tt.fields.PN,
+				Table:        tt.fields.Table,
+				ReverseTable: tt.fields.ReverseTable,
+			}
+			if got := baseX.encodeLongValue(tt.args.lVal); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("BaseX.encodeLongValue() = %v, want %v", got, tt.want)
+			}
+		})
 	}
 }
 
-func TestBaseXDecodeLongValue(t *testing.T) {
-	baseX, err := NewBaseX(121)
-	if err != nil {
-		t.Error("failed test", err)
+func TestBaseX_encodeDoubleValue(t *testing.T) {
+	type fields struct {
+		PN           int
+		Table        []int
+		ReverseTable []int
 	}
-
-	var indata []rune
-	var expect int
-
-	indata = []rune{0}
-	totalVal := baseX.decodeLongValue(indata)
-	expect = 0
-	if totalVal != expect {
-		t.Error("\nresult:", totalVal, "\nexpect:", expect)
+	type args struct {
+		dVal float64
 	}
-
-	indata = []rune{2, 85}
-	totalVal = baseX.decodeLongValue(indata)
-	expect = 200
-	if totalVal != expect {
-		t.Error("\nresult:", totalVal, "\nexpect:", expect)
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   []rune
+	}{
+		// TODO: Add test cases.
 	}
-
-	indata = []rune{45, 2, 85}
-	totalVal = baseX.decodeLongValue(indata)
-	expect = -200
-	if totalVal != expect {
-		t.Error("\nresult:", totalVal, "\nexpect:", expect)
-	}
-
-	indata = []rune{7, 106, 60}
-	totalVal = baseX.decodeLongValue(indata)
-	expect = 100000
-	if totalVal != expect {
-		t.Error("\nresult:", totalVal, "\nexpect:", expect)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			baseX := BaseX{
+				PN:           tt.fields.PN,
+				Table:        tt.fields.Table,
+				ReverseTable: tt.fields.ReverseTable,
+			}
+			if got := baseX.encodeDoubleValue(tt.args.dVal); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("BaseX.encodeDoubleValue() = %v, want %v", got, tt.want)
+			}
+		})
 	}
 }
 
-func TestBaseXDecodeDoubleValue(t *testing.T) {
-	baseX, err := NewBaseX(121)
-	if err != nil {
-		t.Error("failed test", err)
+func TestBaseX_decodeLongValue(t *testing.T) {
+	type fields struct {
+		PN           int
+		Table        []int
+		ReverseTable []int
 	}
-
-	var indata []rune
-	var totalVal float64
-	var expect float64
-
-	indata = []rune{4, 46, 15}
-	totalVal = baseX.decodeDoubleValue(indata)
-	expect = 3.14
-	if totalVal != expect {
-		t.Error("\nresult:", totalVal, "\nexpect:", expect)
+	type args struct {
+		sVal []rune
 	}
-
-	indata = []rune{4, 46, 0, 5}
-	totalVal = baseX.decodeDoubleValue(indata)
-	expect = 3.04
-	if totalVal != expect {
-		t.Error("\nresult:", totalVal, "\nexpect:", expect)
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   int
+	}{
+		// TODO: Add test cases.
 	}
-	indata = []rune{4}
-	totalVal = baseX.decodeDoubleValue(indata)
-	expect = 3
-	if totalVal != expect {
-		t.Error("\nresult:", totalVal, "\nexpect:", expect)
-	}
-
-	indata = []rune{45, 4, 46, 0, 5}
-	totalVal = baseX.decodeDoubleValue(indata)
-	expect = -3.04
-	if totalVal != expect {
-		t.Error("\nresult:", totalVal, "\nexpect:", expect)
-	}
-
-	indata = []rune{45, 46, 72, 123, 57}
-	totalVal = baseX.decodeDoubleValue(indata)
-	expect = -0.980515
-	totalVal = math.Round(totalVal*1000000) / 1000000
-
-	if totalVal != expect {
-		t.Error("\nresult:", totalVal, "\nexpect:", expect)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			baseX := BaseX{
+				PN:           tt.fields.PN,
+				Table:        tt.fields.Table,
+				ReverseTable: tt.fields.ReverseTable,
+			}
+			if got := baseX.decodeLongValue(tt.args.sVal); got != tt.want {
+				t.Errorf("BaseX.decodeLongValue() = %v, want %v", got, tt.want)
+			}
+		})
 	}
 }
 
-//　Test SenbayFormat
+func TestBaseX_decodeDoubleValue(t *testing.T) {
+	type fields struct {
+		PN           int
+		Table        []int
+		ReverseTable []int
+	}
+	type args struct {
+		sVal []rune
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   float64
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			baseX := BaseX{
+				PN:           tt.fields.PN,
+				Table:        tt.fields.Table,
+				ReverseTable: tt.fields.ReverseTable,
+			}
+			if got := baseX.decodeDoubleValue(tt.args.sVal); got != tt.want {
+				t.Errorf("BaseX.decodeDoubleValue() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestNewSenbayFormat(t *testing.T) {
-	_, err := NewSenbayFormat(121)
-	if err != nil {
-		t.Error("failed test", err)
+	type args struct {
+		PN int
 	}
-
-	_, err = NewSenbayFormat(200)
-	if err == nil {
-		t.Error("failed test")
+	tests := []struct {
+		name    string
+		args    args
+		want    *Format
+		wantErr bool
+	}{
+		// TODO: Add test cases.
 	}
-}
-
-func TestSenbayFormatGetReservedShortKey(t *testing.T) {
-	senbayFormat, err := NewSenbayFormat(121)
-	if err != nil {
-		t.Error("failed test", err)
-	}
-
-	expect := "0"
-	result := senbayFormat.getReservedShortKey("TIME")
-	if result != expect {
-		t.Error("\nresult:", result, "\nexpect:", expect)
-	}
-}
-
-func TestSenbayFormatGetReservedOriginalKey(t *testing.T) {
-	senbayFormat, err := NewSenbayFormat(121)
-	if err != nil {
-		t.Error("failed test", err)
-	}
-
-	expect := "TIME"
-	result := senbayFormat.getReservedOriginalKey("0")
-	if result != expect {
-		t.Error("\nresult:", result, "\nexpect:", expect)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := NewSenbayFormat(tt.args.PN)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("NewSenbayFormat() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("NewSenbayFormat() = %v, want %v", got, tt.want)
+			}
+		})
 	}
 }
 
-// Test SenbayData
-func TestSenbayDataEncode(t *testing.T) {
-	senbayData, err := NewSenbayData(121)
-	if err != nil {
-		t.Error("failed test", err)
+func TestFormat_getReservedShortKey(t *testing.T) {
+	type fields struct {
+		ReversedKeys map[string]string
+		PN           int
+		baseX        *BaseX
 	}
-
-	senbayData.AddInt("KEY1", 234)
-	senbayData.AddText("KEY2", "value2")
-
-	result := senbayData.Encode(true)
-	expect := "V:4,KEY1:w,KEY2:'value2'"
-	if result != expect {
-		t.Error("\nresult:", result, "\nexpect:", expect)
+	type args struct {
+		key string
 	}
-
-	senbayData, err = NewSenbayData(121)
-	if err != nil {
-		t.Error("failed test", err)
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   string
+	}{
+		// TODO: Add test cases.
 	}
-	senbayData.AddFloat("KEY1", 1000.34)
-	senbayData.AddText("KEY2", "value2")
-
-	result = senbayData.Encode(true)
-	expect = "V:4,KEY1:	!.#,KEY2:'value2'"
-	if result != expect {
-		t.Error("\nresult:", result, "\nexpect:", expect)
-	}
-}
-
-func TestSenbayDataClear(t *testing.T) {
-	senbayData, err := NewSenbayData(121)
-	if err != nil {
-		t.Error("failed test", err)
-	}
-
-	senbayData.AddInt("KEY1", 123)
-	senbayData.AddText("KEY2", "hello")
-	senbayData.Clear()
-
-	if len(senbayData.senbayData) != 0 {
-		t.Error("\nresult:", senbayData)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			senbayFormat := Format{
+				ReversedKeys: tt.fields.ReversedKeys,
+				PN:           tt.fields.PN,
+				baseX:        tt.fields.baseX,
+			}
+			if got := senbayFormat.getReservedShortKey(tt.args.key); got != tt.want {
+				t.Errorf("Format.getReservedShortKey() = %v, want %v", got, tt.want)
+			}
+		})
 	}
 }
 
-func TestSenbayFormatDecode(t *testing.T) {
-	senbayFormat, err := NewSenbayFormat(121)
-	if err != nil {
-		t.Error("failed test", err)
+func TestFormat_getReservedOriginalKey(t *testing.T) {
+	type fields struct {
+		ReversedKeys map[string]string
+		PN           int
+		baseX        *BaseX
 	}
-
-	indata := "3+."
-	expect := "ALTI:41"
-	result := senbayFormat.decode(indata)
-	if result != expect {
-		t.Error("\nresult:", result, "\nexpect:", expect)
+	type args struct {
+		key string
 	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   string
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			senbayFormat := Format{
+				ReversedKeys: tt.fields.ReversedKeys,
+				PN:           tt.fields.PN,
+				baseX:        tt.fields.baseX,
+			}
+			if got := senbayFormat.getReservedOriginalKey(tt.args.key); got != tt.want {
+				t.Errorf("Format.getReservedOriginalKey() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
 
-	indata = "4-.H{9,6-.|"
-	expect = "ACCX:-0.9805150000000006;ACCZ:-0.11800000000000002"
-	result = senbayFormat.decode(indata)
-	if result != expect {
-		t.Error("\nresult:", result, "\nexpect:", expect)
+func TestFormat_encode(t *testing.T) {
+	type fields struct {
+		ReversedKeys map[string]string
+		PN           int
+		baseX        *BaseX
+	}
+	type args struct {
+		text string
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   string
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			senbayFormat := Format{
+				ReversedKeys: tt.fields.ReversedKeys,
+				PN:           tt.fields.PN,
+				baseX:        tt.fields.baseX,
+			}
+			if got := senbayFormat.encode(tt.args.text); got != tt.want {
+				t.Errorf("Format.encode() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestFormat_decode(t *testing.T) {
+	type fields struct {
+		ReversedKeys map[string]string
+		PN           int
+		baseX        *BaseX
+	}
+	type args struct {
+		text string
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   string
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			senbayFormat := Format{
+				ReversedKeys: tt.fields.ReversedKeys,
+				PN:           tt.fields.PN,
+				baseX:        tt.fields.baseX,
+			}
+			if got := senbayFormat.decode(tt.args.text); got != tt.want {
+				t.Errorf("Format.decode() = %v, want %v", got, tt.want)
+			}
+		})
 	}
 }
 
 func TestNewSenbayData(t *testing.T) {
-	_, err := NewSenbayData(121)
-	if err != nil {
-		t.Error("failed test", err)
+	type args struct {
+		PN int
 	}
-
-	_, err = NewSenbayData(200)
-	if err == nil {
-		t.Error("failed test")
+	tests := []struct {
+		name    string
+		args    args
+		want    *Data
+		wantErr bool
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := NewSenbayData(tt.args.PN)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("NewSenbayData() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("NewSenbayData() = %v, want %v", got, tt.want)
+			}
+		})
 	}
 }
 
-func TestSenbayFormatEncode(t *testing.T) {
-	SenbayData, err := NewSenbayData(121)
-	if err != nil {
-		t.Error("failed test", err)
+func TestData_AddInt(t *testing.T) {
+	type fields struct {
+		senbayData map[string]string
+		PN         int
+		SF         *Format
 	}
-
-	indata := "V:4,0YU97.+>H,16,2$."
-	expect := "ALTI:41"
-	result := SenbayData.Decode(indata)
-	if len(result) != 3 {
-		t.Error("\nresult:", result, "\nexpect:", expect)
+	type args struct {
+		key   string
+		value int
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			SD := Data{
+				senbayData: tt.fields.senbayData,
+				PN:         tt.fields.PN,
+				SF:         tt.fields.SF,
+			}
+			SD.AddInt(tt.args.key, tt.args.value)
+		})
 	}
 }
 
-func TestSenbayDataDecode(t *testing.T) {
-	SenbayData, err := NewSenbayData(121)
-	if err != nil {
-		t.Error("failed test", err)
+func TestData_AddInt64(t *testing.T) {
+	type fields struct {
+		senbayData map[string]string
+		PN         int
+		SF         *Format
 	}
+	type args struct {
+		key   string
+		value int64
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			SD := Data{
+				senbayData: tt.fields.senbayData,
+				PN:         tt.fields.PN,
+				SF:         tt.fields.SF,
+			}
+			SD.AddInt64(tt.args.key, tt.args.value)
+		})
+	}
+}
 
-	indata := "V:4,0YU97.+>H,16,2$."
-	expect := "ALTI:41"
-	result := SenbayData.Decode(indata)
-	if len(result) != 3 {
-		t.Error("\nresult:", result, "\nexpect:", expect)
+func TestData_AddFloat(t *testing.T) {
+	type fields struct {
+		senbayData map[string]string
+		PN         int
+		SF         *Format
+	}
+	type args struct {
+		key   string
+		value float32
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			SD := Data{
+				senbayData: tt.fields.senbayData,
+				PN:         tt.fields.PN,
+				SF:         tt.fields.SF,
+			}
+			SD.AddFloat(tt.args.key, tt.args.value)
+		})
+	}
+}
+
+func TestData_AddFloat64(t *testing.T) {
+	type fields struct {
+		senbayData map[string]string
+		PN         int
+		SF         *Format
+	}
+	type args struct {
+		key   string
+		value float64
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			SD := Data{
+				senbayData: tt.fields.senbayData,
+				PN:         tt.fields.PN,
+				SF:         tt.fields.SF,
+			}
+			SD.AddFloat64(tt.args.key, tt.args.value)
+		})
+	}
+}
+
+func TestData_AddText(t *testing.T) {
+	type fields struct {
+		senbayData map[string]string
+		PN         int
+		SF         *Format
+	}
+	type args struct {
+		key   string
+		value string
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			SD := Data{
+				senbayData: tt.fields.senbayData,
+				PN:         tt.fields.PN,
+				SF:         tt.fields.SF,
+			}
+			SD.AddText(tt.args.key, tt.args.value)
+		})
+	}
+}
+
+func TestData_Clear(t *testing.T) {
+	type fields struct {
+		senbayData map[string]string
+		PN         int
+		SF         *Format
+	}
+	tests := []struct {
+		name   string
+		fields fields
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			SD := Data{
+				senbayData: tt.fields.senbayData,
+				PN:         tt.fields.PN,
+				SF:         tt.fields.SF,
+			}
+			SD.Clear()
+		})
+	}
+}
+
+func TestData_Encode(t *testing.T) {
+	type fields struct {
+		senbayData map[string]string
+		PN         int
+		SF         *Format
+	}
+	type args struct {
+		compress bool
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   string
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			SD := Data{
+				senbayData: tt.fields.senbayData,
+				PN:         tt.fields.PN,
+				SF:         tt.fields.SF,
+			}
+			if got := SD.Encode(tt.args.compress); got != tt.want {
+				t.Errorf("Data.Encode() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestData_Decode(t *testing.T) {
+	type fields struct {
+		senbayData map[string]string
+		PN         int
+		SF         *Format
+	}
+	type args struct {
+		text string
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   map[string]string
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			SD := Data{
+				senbayData: tt.fields.senbayData,
+				PN:         tt.fields.PN,
+				SF:         tt.fields.SF,
+			}
+			if got := SD.Decode(tt.args.text); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Data.Decode() = %v, want %v", got, tt.want)
+			}
+		})
 	}
 }

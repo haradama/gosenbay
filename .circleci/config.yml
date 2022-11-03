@@ -1,9 +1,0 @@
-version: 2
-jobs:
-  build:
-    docker:
-      - image: gocv/opencv:4.5.1
-    steps:
-      - checkout
-      - run: go get
-      - run: go build

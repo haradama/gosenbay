@@ -1,6 +1,7 @@
 package senbay
 
 import (
+	"log"
 	"time"
 
 	"github.com/makiuchi-d/gozxing"
@@ -32,7 +33,8 @@ type Writer struct {
 	codec        string
 }
 
-func NewSenbayWriter(outfile string, width uint, height uint, qrBoxSize uint, cameraNumber uint, codec string, fps uint) *Writer {
+func NewSenbayWriter(outfile string, width uint, height uint, qrBoxSize uint,
+	cameraNumber uint, codec string, fps uint) *Writer {
 	writer := &Writer{
 		outfile:      outfile,
 		width:        width,
@@ -55,13 +57,13 @@ func (writer Writer) Start() {
 	cameraNumber := int(writer.cameraNumber)
 	webcam, err := gocv.OpenVideoCapture(cameraNumber)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	defer webcam.Close()
 
 	img := gocv.NewMat()
 	if ok := webcam.Read(&img); !ok {
-		panic("Cannot read device")
+		log.Fatal("Cannot read device")
 	}
 
 	videoCodec := writer.codec
@@ -70,7 +72,7 @@ func (writer Writer) Start() {
 	videoWriter, err := gocv.VideoWriterFile(
 		writer.outfile, videoCodec, fps, img.Cols(), img.Rows(), true)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	defer videoWriter.Close()
 
@@ -79,7 +81,7 @@ func (writer Writer) Start() {
 	for {
 		SD, err := NewSenbayData(PN)
 		if err != nil {
-			panic(err)
+			log.Fatal(err)
 		}
 
 		currentTime := time.Now().UnixNano() / int64(time.Millisecond)
@@ -89,9 +91,10 @@ func (writer Writer) Start() {
 		qrWidth := int(writer.qrBoxSize)
 		qrHeight := int(writer.qrBoxSize)
 
-		qrCode, err := qrWriter.EncodeWithoutHint(encodedText, gozxing.BarcodeFormat_QR_CODE, qrWidth, qrHeight)
+		qrCode, err := qrWriter.EncodeWithoutHint(encodedText,
+			gozxing.BarcodeFormat_QR_CODE, qrWidth, qrHeight)
 		if err != nil {
-			panic(err)
+			log.Fatal(err)
 		}
 
 		if img.Empty() {
