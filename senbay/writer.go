@@ -9,11 +9,13 @@ import (
 	"gocv.io/x/gocv"
 )
 
+// SenbayFrame is a struct that defines the parameters for the Senbay frame.
 type SenbayFrame struct {
 	qrBoxSize         uint
 	qrErrorCorrection int
 }
 
+// NewSenbayFrame returns a new SenbayFrame with the given parameters.
 func NewSenbayFrame(qrBoxSize uint, qrErrorCorrection int) *SenbayFrame {
 	senbayFrame := &SenbayFrame{
 		qrBoxSize:         qrBoxSize,
@@ -23,6 +25,7 @@ func NewSenbayFrame(qrBoxSize uint, qrErrorCorrection int) *SenbayFrame {
 	return senbayFrame
 }
 
+// Writer describe an writer to create senbay style contents
 type Writer struct {
 	outfile      string
 	width        uint
@@ -33,6 +36,7 @@ type Writer struct {
 	codec        string
 }
 
+// NewSenbayWriter returns a new SenbayWriter for a video or camera
 func NewSenbayWriter(outfile string, width uint, height uint, qrBoxSize uint,
 	cameraNumber uint, codec string, fps uint) *Writer {
 	writer := &Writer{
@@ -48,6 +52,7 @@ func NewSenbayWriter(outfile string, width uint, height uint, qrBoxSize uint,
 	return writer
 }
 
+// Start begins the process of writing Senbay style contents to a video file.
 func (writer Writer) Start() {
 	PN := 121
 

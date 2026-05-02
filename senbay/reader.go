@@ -9,6 +9,7 @@ import (
 	"gocv.io/x/gocv"
 )
 
+// InputMode is an enum that defines the input mode of the Senbay reader.
 type InputMode int
 
 const (
@@ -24,6 +25,7 @@ type Reader struct {
 	nographic  bool
 }
 
+// NewSenbayReader returns a new SenbayReader for a video or camera
 func NewSenbayReader(videoInput string, nographic bool) *Reader {
 	senbayReader := &Reader{
 		videoInput: videoInput,

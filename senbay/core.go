@@ -100,7 +100,7 @@ func NewBaseX(positionalNotation int) (*BaseX, error) {
 	return baseX, nil
 }
 
-// encodeLongValue returns
+// encodeLongValue returns the encoded long value from the given int value.
 func (baseX BaseX) encodeLongValue(lVal int) []rune {
 	var isNegative bool
 	if lVal < 0 {
@@ -131,6 +131,7 @@ func (baseX BaseX) encodeLongValue(lVal int) []rune {
 	return muString
 }
 
+// encodeDoubleValue returns the encoded double value from the given float64 value.
 func (baseX BaseX) encodeDoubleValue(dVal float64) []rune {
 	var isNegative bool
 	if dVal < 0 {
@@ -179,6 +180,7 @@ func (baseX BaseX) encodeDoubleValue(dVal float64) []rune {
 	return encoded
 }
 
+// decodeLongValue returns the decoded long value from the given string value.
 func (baseX BaseX) decodeLongValue(sVal []rune) int {
 	if len(sVal) == 0 {
 		return 0
@@ -212,6 +214,7 @@ func (baseX BaseX) decodeLongValue(sVal []rune) int {
 	return int(totalVal)
 }
 
+// decodeDoubleValue returns the decoded double value from the given string value.
 func (baseX BaseX) decodeDoubleValue(sVal []rune) float64 {
 	if len(sVal) == 0 {
 		return 0
@@ -268,7 +271,7 @@ func (baseX BaseX) decodeDoubleValue(sVal []rune) float64 {
 	}
 }
 
-// Format is
+// Format is a struct that contains the information of the format of Senbay text.
 type Format struct {
 	ReversedKeys map[string]string
 	PN           int
@@ -290,6 +293,7 @@ func NewSenbayFormat(PN int) (*Format, error) {
 	return senbayFormat, nil
 }
 
+// getReservedShortKey returns the reserved short key for a given original key
 func (senbayFormat Format) getReservedShortKey(key string) string {
 	for k, v := range senbayFormat.ReversedKeys {
 		if k == key {
@@ -300,6 +304,7 @@ func (senbayFormat Format) getReservedShortKey(key string) string {
 	return ""
 }
 
+// getReservedOriginalKey returns the original key for a reserved key
 func (senbayFormat Format) getReservedOriginalKey(key string) string {
 	for k, v := range senbayFormat.ReversedKeys {
 		if v == key {
@@ -310,6 +315,7 @@ func (senbayFormat Format) getReservedOriginalKey(key string) string {
 	return ""
 }
 
+// encode encodes Senbay text.
 func (senbayFormat Format) encode(text string) string {
 	var encodedText string
 	elements := strings.Split(text, ",")
@@ -361,7 +367,6 @@ func (senbayFormat Format) encode(text string) string {
 	return encodedText
 }
 
-// decode
 // decode decodes compressed Senbay text.
 func (senbayFormat Format) decode(text string) string {
 	var decodedElements []string
@@ -417,7 +422,7 @@ func (senbayFormat Format) decode(text string) string {
 	return strings.Join(decodedElements, ",")
 }
 
-// A Data is
+// A Data is a struct that contains the information of the Senbay data.
 type Data struct {
 	senbayData map[string]string
 	PN         int
