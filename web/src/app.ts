@@ -39,6 +39,9 @@ export async function bootApp(): Promise<void> {
     document.querySelector<HTMLAnchorElement>("#downloadLink");
   const recordingStatus =
     document.querySelector<HTMLSpanElement>("#recordingStatus");
+  const previewRecordingStatus = document.querySelector<HTMLDivElement>(
+    "#previewRecordingStatus",
+  );
 
   if (
     !video ||
@@ -50,7 +53,8 @@ export async function bootApp(): Promise<void> {
     !startRecordingButton ||
     !stopRecordingButton ||
     !downloadLink ||
-    !recordingStatus
+    !recordingStatus ||
+    !previewRecordingStatus
   ) {
     throw new Error("Required DOM elements were not found");
   }
@@ -93,6 +97,8 @@ export async function bootApp(): Promise<void> {
     recordingStartedAt = Date.now();
 
     recordingStatus.hidden = false;
+    previewRecordingStatus.hidden = false;
+
     startRecordingButton.disabled = true;
     stopRecordingButton.disabled = false;
     downloadLink.hidden = true;
@@ -100,7 +106,9 @@ export async function bootApp(): Promise<void> {
 
   stopRecordingButton.addEventListener("click", async () => {
     isRecording = false;
+
     recordingStatus.hidden = true;
+    previewRecordingStatus.hidden = true;
 
     const blob = await recorder.stop();
     const url = URL.createObjectURL(blob);
@@ -165,7 +173,6 @@ export async function bootApp(): Promise<void> {
     if (!cameraStarted) return;
 
     fitCanvasToVideo(canvas, video);
-
     qrRect = clampQrRect(qrRect, canvas);
 
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
@@ -184,23 +191,33 @@ export async function bootApp(): Promise<void> {
 
     if (lastEncoded) {
       await drawQrOverlay(ctx, lastEncoded, qrRect.x, qrRect.y, qrRect.size);
-      drawQrHandle(ctx, qrRect);
     }
 
     if (isRecording) {
-      const elapsedMs = Date.now() - recordingStartedAt;
-      const elapsedText = formatElapsed(elapsedMs);
-
-      recordingStatus.innerHTML = `
-        <span class="recording-dot"></span>
-        Recording ${elapsedText}
-      `;
-
-      drawRecordingOverlay(ctx, elapsedText);
+      const elapsedText = formatElapsed(Date.now() - recordingStartedAt);
+      updateRecordingStatus(
+        recordingStatus,
+        previewRecordingStatus,
+        elapsedText,
+      );
     }
 
     requestAnimationFrame(render);
   }
+}
+
+function updateRecordingStatus(
+  toolbarStatus: HTMLSpanElement,
+  previewStatus: HTMLDivElement,
+  elapsedText: string,
+): void {
+  const html = `
+    <span class="recording-dot"></span>
+    REC ${elapsedText}
+  `;
+
+  toolbarStatus.innerHTML = html;
+  previewStatus.innerHTML = html;
 }
 
 function toCanvasPoint(canvas: HTMLCanvasElement, event: PointerEvent): Point {
@@ -230,72 +247,6 @@ function clampQrRect(qrRect: Rect, canvas: HTMLCanvasElement): Rect {
     x: Math.min(Math.max(qrRect.x, 0), maxX),
     y: Math.min(Math.max(qrRect.y, 0), maxY),
   };
-}
-
-function drawQrHandle(ctx: CanvasRenderingContext2D, qrRect: Rect): void {
-  ctx.save();
-
-  ctx.lineWidth = 4;
-  ctx.strokeStyle = "rgba(255, 255, 255, 0.9)";
-  ctx.strokeRect(qrRect.x, qrRect.y, qrRect.size, qrRect.size);
-
-  ctx.fillStyle = "rgba(0, 0, 0, 0.65)";
-  ctx.fillRect(qrRect.x, qrRect.y + qrRect.size - 32, qrRect.size, 32);
-
-  ctx.fillStyle = "#ffffff";
-  ctx.font = "bold 18px system-ui, sans-serif";
-  ctx.textBaseline = "middle";
-  ctx.fillText("Drag QR", qrRect.x + 12, qrRect.y + qrRect.size - 16);
-
-  ctx.restore();
-}
-
-function drawRecordingOverlay(
-  ctx: CanvasRenderingContext2D,
-  elapsedText: string,
-): void {
-  const padding = 16;
-  const width = 190;
-  const height = 52;
-  const x = ctx.canvas.width - width - padding;
-  const y = padding;
-
-  ctx.save();
-
-  ctx.fillStyle = "rgba(0, 0, 0, 0.68)";
-  roundRect(ctx, x, y, width, height, 18);
-  ctx.fill();
-
-  ctx.fillStyle = "#ff3434";
-  ctx.beginPath();
-  ctx.arc(x + 28, y + height / 2, 9, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.fillStyle = "#ffffff";
-  ctx.font = "bold 22px system-ui, sans-serif";
-  ctx.textBaseline = "middle";
-  ctx.fillText(`REC ${elapsedText}`, x + 48, y + height / 2);
-
-  ctx.restore();
-}
-
-function roundRect(
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  width: number,
-  height: number,
-  radius: number,
-): void {
-  const r = Math.min(radius, width / 2, height / 2);
-
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.arcTo(x + width, y, x + width, y + height, r);
-  ctx.arcTo(x + width, y + height, x, y + height, r);
-  ctx.arcTo(x, y + height, x, y, r);
-  ctx.arcTo(x, y, x + width, y, r);
-  ctx.closePath();
 }
 
 function formatElapsed(ms: number): string {

@@ -22,8 +22,19 @@
       </section>
 
       <section class="preview">
-        <video id="cameraVideo" playsinline muted></video>
-        <canvas id="outputCanvas"></canvas>
+        <div class="preview-frame">
+          <video id="cameraVideo" playsinline muted></video>
+          <canvas id="outputCanvas"></canvas>
+
+          <div id="previewRecordingStatus" class="preview-recording-status" hidden>
+            <span class="recording-dot"></span>
+            REC 00:00
+          </div>
+
+          <div id="qrMoveHint" class="qr-move-hint">
+            QR code can be moved by dragging.
+          </div>
+        </div>
       </section>
 
       <section class="debug">

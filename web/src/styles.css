@@ -116,3 +116,51 @@ pre {
   border-radius: 12px;
   background: #222;
 }
+
+.preview-frame {
+  position: relative;
+  display: grid;
+}
+
+.preview-recording-status {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 999px;
+  padding: 10px 14px;
+  background: rgba(0, 0, 0, 0.72);
+  color: #fff;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  pointer-events: none;
+  box-shadow: 0 0 0 1px rgba(255, 52, 52, 0.5);
+}
+
+.qr-move-hint {
+  position: absolute;
+  left: 16px;
+  bottom: 16px;
+  border-radius: 999px;
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.62);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  pointer-events: none;
+}
+
+canvas {
+  touch-action: none;
+  user-select: none;
+}
+
+canvas.qr-hover {
+  cursor: grab;
+}
+
+canvas.dragging {
+  cursor: grabbing;
+}
