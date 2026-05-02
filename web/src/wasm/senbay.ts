@@ -5,11 +5,26 @@ export async function loadSenbayWasm(): Promise<void> {
 
   readyPromise = (async () => {
     const go = new window.Go();
+    const wasmUrl = `${import.meta.env.BASE_URL}senbay.wasm`;
 
-    const result = await WebAssembly.instantiateStreaming(
-      fetch("/senbay.wasm"),
-      go.importObject,
-    );
+    try {
+      const result = await WebAssembly.instantiateStreaming(
+        fetch(wasmUrl),
+        go.importObject,
+      );
+
+      go.run(result.instance);
+      return;
+    } catch (error) {
+      console.warn(
+        "instantiateStreaming failed. Falling back to ArrayBuffer.",
+        error,
+      );
+    }
+
+    const response = await fetch(wasmUrl);
+    const bytes = await response.arrayBuffer();
+    const result = await WebAssembly.instantiate(bytes, go.importObject);
 
     go.run(result.instance);
   })();
