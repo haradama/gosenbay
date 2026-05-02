@@ -1,4 +1,8 @@
-import { startCamera, fitCanvasToVideo } from "./camera/camera";
+import {
+  startCamera,
+  fitCanvasToDisplayOrientation,
+  drawVideoCover,
+} from "./camera/camera";
 import { CanvasRecorder } from "./recorder/recorder";
 import { drawQrOverlay } from "./qr/qrcode";
 import { enableSensors, getSensorSnapshot } from "./sensors/sensor-source";
@@ -13,6 +17,11 @@ type Rect = {
   x: number;
   y: number;
   size: number;
+};
+
+type CanvasSize = {
+  width: number;
+  height: number;
 };
 
 const QR_SIZE = 180;
@@ -39,9 +48,6 @@ export async function bootApp(): Promise<void> {
     document.querySelector<HTMLAnchorElement>("#downloadLink");
   const recordingStatus =
     document.querySelector<HTMLSpanElement>("#recordingStatus");
-  const previewRecordingStatus = document.querySelector<HTMLDivElement>(
-    "#previewRecordingStatus",
-  );
 
   if (
     !video ||
@@ -53,8 +59,7 @@ export async function bootApp(): Promise<void> {
     !startRecordingButton ||
     !stopRecordingButton ||
     !downloadLink ||
-    !recordingStatus ||
-    !previewRecordingStatus
+    !recordingStatus
   ) {
     throw new Error("Required DOM elements were not found");
   }
@@ -71,6 +76,8 @@ export async function bootApp(): Promise<void> {
   let lastQrUpdate = 0;
   let lastEncoded = "";
 
+  let hasCanvasSizeInitialized = false;
+
   let qrRect: Rect = {
     x: QR_MARGIN,
     y: QR_MARGIN,
@@ -83,6 +90,7 @@ export async function bootApp(): Promise<void> {
   startCameraButton.addEventListener("click", async () => {
     await startCamera(video);
     cameraStarted = true;
+    startCameraButton.disabled = true;
     render();
   });
 
@@ -96,8 +104,8 @@ export async function bootApp(): Promise<void> {
     isRecording = true;
     recordingStartedAt = Date.now();
 
+    updateRecordingStatus(recordingStatus, "00:00");
     recordingStatus.hidden = false;
-    previewRecordingStatus.hidden = false;
 
     startRecordingButton.disabled = true;
     stopRecordingButton.disabled = false;
@@ -106,9 +114,7 @@ export async function bootApp(): Promise<void> {
 
   stopRecordingButton.addEventListener("click", async () => {
     isRecording = false;
-
     recordingStatus.hidden = true;
-    previewRecordingStatus.hidden = true;
 
     const blob = await recorder.stop();
     const url = URL.createObjectURL(blob);
@@ -172,10 +178,22 @@ export async function bootApp(): Promise<void> {
   async function render(): Promise<void> {
     if (!cameraStarted) return;
 
-    fitCanvasToVideo(canvas, video);
+    const previousCanvasSize: CanvasSize = {
+      width: canvas.width,
+      height: canvas.height,
+    };
+
+    const canvasResized = fitCanvasToDisplayOrientation(canvas);
+
+    if (canvasResized && hasCanvasSizeInitialized) {
+      qrRect = scaleQrRectForCanvasChange(qrRect, previousCanvasSize, canvas);
+    }
+
+    hasCanvasSizeInitialized = true;
     qrRect = clampQrRect(qrRect, canvas);
 
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    // 録画されるCanvasには、映像とQRコードだけ描く
+    drawVideoCover(ctx, video, canvas);
 
     const now = performance.now();
 
@@ -195,11 +213,7 @@ export async function bootApp(): Promise<void> {
 
     if (isRecording) {
       const elapsedText = formatElapsed(Date.now() - recordingStartedAt);
-      updateRecordingStatus(
-        recordingStatus,
-        previewRecordingStatus,
-        elapsedText,
-      );
+      updateRecordingStatus(recordingStatus, elapsedText);
     }
 
     requestAnimationFrame(render);
@@ -208,16 +222,12 @@ export async function bootApp(): Promise<void> {
 
 function updateRecordingStatus(
   toolbarStatus: HTMLSpanElement,
-  previewStatus: HTMLDivElement,
   elapsedText: string,
 ): void {
-  const html = `
+  toolbarStatus.innerHTML = `
     <span class="recording-dot"></span>
-    REC ${elapsedText}
+    Recording ${elapsedText}
   `;
-
-  toolbarStatus.innerHTML = html;
-  previewStatus.innerHTML = html;
 }
 
 function toCanvasPoint(canvas: HTMLCanvasElement, event: PointerEvent): Point {
@@ -246,6 +256,22 @@ function clampQrRect(qrRect: Rect, canvas: HTMLCanvasElement): Rect {
     ...qrRect,
     x: Math.min(Math.max(qrRect.x, 0), maxX),
     y: Math.min(Math.max(qrRect.y, 0), maxY),
+  };
+}
+
+function scaleQrRectForCanvasChange(
+  qrRect: Rect,
+  previousCanvasSize: CanvasSize,
+  canvas: HTMLCanvasElement,
+): Rect {
+  if (previousCanvasSize.width <= 0 || previousCanvasSize.height <= 0) {
+    return qrRect;
+  }
+
+  return {
+    ...qrRect,
+    x: qrRect.x * (canvas.width / previousCanvasSize.width),
+    y: qrRect.y * (canvas.height / previousCanvasSize.height),
   };
 }
 
