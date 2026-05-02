@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Senbay Web Camera</title>
+    <link rel="manifest" href="/manifest.webmanifest" />
+  </head>
+  <body>
+    <main class="app">
+      <section class="toolbar">
+        <button id="startCamera">Start Camera</button>
+        <button id="enableSensors">Enable Sensors</button>
+        <button id="startRecording">Start Recording</button>
+        <button id="stopRecording" disabled>Stop Recording</button>
+        <a id="downloadLink" hidden>Download Video</a>
+      </section>
+
+      <section class="preview">
+        <video id="cameraVideo" playsinline muted></video>
+        <canvas id="outputCanvas"></canvas>
+      </section>
+
+      <section class="debug">
+        <h2>Senbay Payload</h2>
+        <pre id="payloadView">{}</pre>
+        <h2>Encoded</h2>
+        <pre id="encodedView"></pre>
+      </section>
+    </main>
+
+    <script src="/wasm_exec.js"></script>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
