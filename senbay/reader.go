@@ -67,7 +67,11 @@ func (reader Reader) Start(fn HandlerFunc) {
 		window = gocv.NewWindow(title)
 	}
 	for {
-		cap.Read(&mat)
+		ok := cap.Read(&mat)
+		if !ok || mat.Empty() {
+			break
+		}
+
 		img, err := mat.ToImage()
 		if err != nil {
 			log.Fatal(err)

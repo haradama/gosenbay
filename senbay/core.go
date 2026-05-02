@@ -180,14 +180,24 @@ func (baseX BaseX) encodeDoubleValue(dVal float64) []rune {
 }
 
 func (baseX BaseX) decodeLongValue(sVal []rune) int {
+	if len(sVal) == 0 {
+		return 0
+	}
+
 	var isNegative bool
 	if sVal[0] == '-' {
 		isNegative = true
+		sVal = sVal[1:]
 	}
 
 	var totalVal float64
 	for i := len(sVal) - 1; i >= 0; i-- {
 		key := int(sVal[i])
+
+		if key < 0 || key >= len(baseX.ReverseTable) {
+			continue
+		}
+
 		v := math.Pow(
 			float64(baseX.PN),
 			float64(len(sVal)-i-1),
@@ -196,61 +206,66 @@ func (baseX BaseX) decodeLongValue(sVal []rune) int {
 	}
 
 	if isNegative {
-		return int(totalVal * -1)
+		return int(totalVal) * -1
 	}
 
 	return int(totalVal)
 }
 
 func (baseX BaseX) decodeDoubleValue(sVal []rune) float64 {
+	if len(sVal) == 0 {
+		return 0
+	}
+
 	var isNegative bool
 	if sVal[0] == '-' {
 		isNegative = true
-
 		sVal = sVal[1:]
 	}
 
-	runeIntNum := []rune{}
-	runeFloatNum := []rune{}
+	vals := strings.Split(string(sVal), ".")
 
-	var isFloat bool
-	for _, num := range sVal {
-		if num != '.' {
-			if isFloat {
-				runeFloatNum = append(runeFloatNum, num)
-			} else {
-				runeIntNum = append(runeIntNum, num)
-			}
-		} else {
-			isFloat = true
+	switch len(vals) {
+	case 1:
+		intVal := baseX.decodeLongValue([]rune(vals[0]))
+		if isNegative {
+			return float64(intVal) * -1
 		}
-	}
+		return float64(intVal)
 
-	var intVal int
-	if len(runeIntNum) != 0 {
-		intVal = baseX.decodeLongValue(runeIntNum)
-	}
+	case 2:
+		intVal := baseX.decodeLongValue([]rune(vals[0]))
 
-	if len(runeFloatNum) == 0 {
+		frac := []rune(vals[1])
+		aZero := baseX.encodeLongValue(0)
+
+		zeroCount := 0
+		if len(aZero) > 0 {
+			for zeroCount < len(frac) && frac[zeroCount] == aZero[0] {
+				zeroCount++
+			}
+		}
+
+		decVal := baseX.decodeLongValue(frac[zeroCount:])
+
+		numText := strconv.Itoa(intVal) + "." + strings.Repeat("0", zeroCount) + strconv.Itoa(decVal)
+		floatVal, err := strconv.ParseFloat(numText, 64)
+		if err != nil {
+			return 0
+		}
+
+		if isNegative && floatVal >= 0 {
+			return floatVal * -1
+		}
+		return floatVal
+
+	default:
+		intVal := baseX.decodeLongValue(sVal)
+		if isNegative {
+			return float64(intVal) * -1
+		}
 		return float64(intVal)
 	}
-
-	var zeros []rune
-	for _, aVal := range runeFloatNum {
-		if aVal == 0 {
-			zeros = append(zeros, aVal)
-		} else {
-			break
-		}
-	}
-	decVal := baseX.decodeLongValue(runeFloatNum[len(zeros):])
-
-	floatDigit := math.Floor(math.Log10(float64(decVal))+1.0) + float64(len(zeros))
-	floatNum := float64(decVal) * math.Pow(0.1, floatDigit)
-	if isNegative {
-		return (float64(intVal) + floatNum) * -1.0
-	}
-	return float64(intVal) + floatNum
 }
 
 // Format is
@@ -347,47 +362,59 @@ func (senbayFormat Format) encode(text string) string {
 }
 
 // decode
+// decode decodes compressed Senbay text.
 func (senbayFormat Format) decode(text string) string {
-	var decodedText string
-	var count int
+	var decodedElements []string
+
 	elements := strings.Split(text, ",")
 	for _, element := range elements {
-		var key []rune
-		var val []rune
+		if element == "" {
+			continue
+		}
+
+		var key string
+		var val string
+
 		contents := strings.Split(element, ":")
 		if len(contents) > 1 {
-			key = []rune(contents[0])
-			for _, con := range contents[1:] {
-				if len(val) == 0 {
-					val = []rune(con)
-				} else {
-					val = append(val, ':')
-					val = append(val, []rune(con)...)
-				}
+			key = contents[0]
+			val = strings.Join(contents[1:], ":")
+		} else {
+			runes := []rune(contents[0])
+			if len(runes) == 0 {
+				continue
 			}
-		} else {
-			key = []rune(contents[0])[:1]
-			val = []rune(contents[0])[1:]
+
+			key = string(runes[:1])
+			val = string(runes[1:])
 		}
 
-		reservedKey := senbayFormat.getReservedOriginalKey(string(key))
+		if key == "" || val == "" {
+			continue
+		}
+
+		if key == "V" {
+			decodedElements = append(decodedElements, key+":"+val)
+			continue
+		}
+
+		reservedKey := senbayFormat.getReservedOriginalKey(key)
 		if reservedKey != "" {
-			key = []rune(reservedKey)
+			key = reservedKey
 		}
 
-		if val[0] != '\'' {
-			decodedDoubleValue := senbayFormat.baseX.decodeDoubleValue(val)
-			decodedText = decodedText + string(key) + ":" + strconv.FormatFloat(decodedDoubleValue, 'f', -1, 64)
+		if !strings.HasPrefix(val, "'") {
+			decodedDoubleValue := senbayFormat.baseX.decodeDoubleValue([]rune(val))
+			decodedElements = append(
+				decodedElements,
+				key+":"+strconv.FormatFloat(decodedDoubleValue, 'f', -1, 64),
+			)
 		} else {
-			decodedText = decodedText + string(key) + ":" + string(val)
-		}
-
-		if count < len(elements)-1 {
-			count++
-			decodedText = decodedText + ";"
+			decodedElements = append(decodedElements, key+":"+val)
 		}
 	}
-	return decodedText
+
+	return strings.Join(decodedElements, ",")
 }
 
 // A Data is
@@ -463,6 +490,7 @@ func (SD Data) Encode(compress bool) string {
 // Decode converts the decoded text to the original data.
 func (SD Data) Decode(text string) map[string]string {
 	senbayMap := map[string]string{}
+
 	elements := strings.Split(text, ",")
 	var isCompress bool
 	for _, element := range elements {
@@ -472,33 +500,42 @@ func (SD Data) Decode(text string) map[string]string {
 			break
 		}
 	}
+
 	if isCompress {
 		text = SD.SF.decode(text)
 	}
+
 	elements = strings.Split(text, ",")
 	for _, element := range elements {
-		contents := strings.Split(element, ":")
-		if len(contents) > 1 {
-			key := contents[0]
-			var value string
-			for _, con := range contents[1:] {
-				if value == "" {
-					value = con
-				} else {
-					value = value + ":" + con
-				}
-			}
+		if element == "" {
+			continue
+		}
 
-			if key != "V" {
-				if value != "None" {
-					if value[:1] == "'" {
-						senbayMap[key] = value[1 : len(value)-1]
-					} else {
-						senbayMap[key] = value
-					}
-				}
+		contents := strings.Split(element, ":")
+		if len(contents) <= 1 {
+			continue
+		}
+
+		key := contents[0]
+		value := strings.Join(contents[1:], ":")
+
+		if key == "" || key == "V" {
+			continue
+		}
+		if value == "" || value == "None" {
+			continue
+		}
+
+		if strings.HasPrefix(value, "'") {
+			if len(value) >= 2 {
+				senbayMap[key] = value[1 : len(value)-1]
+			} else {
+				senbayMap[key] = ""
 			}
+		} else {
+			senbayMap[key] = value
 		}
 	}
+
 	return senbayMap
 }
