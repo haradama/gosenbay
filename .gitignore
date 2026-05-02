@@ -1,5 +1,6 @@
-test
-example
+test/
+example/
+.DS_Store
 *.DS_Store
 gosenbay
 *.exe
@@ -7,3 +8,28 @@ gosenbay
 *.icloud
 .vscode/
 *.python-version
+
+# Go
+/bin/
+/dist/
+*.test
+*.out
+coverage.out
+
+# Web / Node
+web/node_modules/
+web/dist/
+web/.vite/
+
+# Generated WebAssembly artifacts
+web/public/senbay.wasm
+web/public/wasm_exec.js
+
+# Local recordings / generated media
+*.webm
+*.mp4
+*.mov
+
+# Environment files
+.env
+.env.*
