@@ -36,14 +36,7 @@ export function encodeSenbay(
   payload: Record<string, number | string | boolean | null | undefined>,
   compress = true,
 ): string {
-  const cleanPayload: Record<string, number | string | boolean> = {};
-
-  for (const [key, value] of Object.entries(payload)) {
-    if (value === null || value === undefined) continue;
-    cleanPayload[key] = value;
-  }
-
-  return window.senbayEncode(JSON.stringify(cleanPayload), compress);
+  return window.senbayEncode(JSON.stringify(payload), compress);
 }
 
 export function decodeSenbay(text: string): Record<string, string> {

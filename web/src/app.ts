@@ -31,41 +31,24 @@ const QR_UPDATE_INTERVAL_MS = 100;
 export async function bootApp(): Promise<void> {
   await loadSenbayWasm();
 
-  const video = document.querySelector<HTMLVideoElement>("#cameraVideo");
-  const canvas = document.querySelector<HTMLCanvasElement>("#outputCanvas");
-  const payloadView = document.querySelector<HTMLPreElement>("#payloadView");
-  const encodedView = document.querySelector<HTMLPreElement>("#encodedView");
+  const video = requireElement<HTMLVideoElement>("#cameraVideo");
+  const canvas = requireElement<HTMLCanvasElement>("#outputCanvas");
+  const payloadView = requireElement<HTMLPreElement>("#payloadView");
+  const encodedView = requireElement<HTMLPreElement>("#encodedView");
 
-  const startCameraButton =
-    document.querySelector<HTMLButtonElement>("#startCamera");
+  const startCameraButton = requireElement<HTMLButtonElement>("#startCamera");
   const enableSensorsButton =
-    document.querySelector<HTMLButtonElement>("#enableSensors");
+    requireElement<HTMLButtonElement>("#enableSensors");
   const startRecordingButton =
-    document.querySelector<HTMLButtonElement>("#startRecording");
+    requireElement<HTMLButtonElement>("#startRecording");
   const stopRecordingButton =
-    document.querySelector<HTMLButtonElement>("#stopRecording");
-  const downloadLink =
-    document.querySelector<HTMLAnchorElement>("#downloadLink");
-  const recordingStatus =
-    document.querySelector<HTMLSpanElement>("#recordingStatus");
+    requireElement<HTMLButtonElement>("#stopRecording");
+  const downloadLink = requireElement<HTMLAnchorElement>("#downloadLink");
+  const recordingStatus = requireElement<HTMLSpanElement>("#recordingStatus");
+  const recordingElapsed = requireElement<HTMLSpanElement>("#recordingElapsed");
+  const qrMoveHint = requireElement<HTMLDivElement>("#qrMoveHint");
 
-  if (
-    !video ||
-    !canvas ||
-    !payloadView ||
-    !encodedView ||
-    !startCameraButton ||
-    !enableSensorsButton ||
-    !startRecordingButton ||
-    !stopRecordingButton ||
-    !downloadLink ||
-    !recordingStatus
-  ) {
-    throw new Error("Required DOM elements were not found");
-  }
-
-  const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("Canvas 2D context is not available");
+  const drawCtx = require2dContext(canvas);
 
   const recorder = new CanvasRecorder();
 
@@ -75,6 +58,7 @@ export async function bootApp(): Promise<void> {
 
   let lastQrUpdate = 0;
   let lastEncoded = "";
+  let lastDownloadUrl: string | null = null;
 
   let hasCanvasSizeInitialized = false;
 
@@ -104,7 +88,7 @@ export async function bootApp(): Promise<void> {
     isRecording = true;
     recordingStartedAt = Date.now();
 
-    updateRecordingStatus(recordingStatus, "00:00");
+    recordingElapsed.textContent = "00:00";
     recordingStatus.hidden = false;
 
     startRecordingButton.disabled = true;
@@ -117,9 +101,11 @@ export async function bootApp(): Promise<void> {
     recordingStatus.hidden = true;
 
     const blob = await recorder.stop();
-    const url = URL.createObjectURL(blob);
 
-    downloadLink.href = url;
+    if (lastDownloadUrl) URL.revokeObjectURL(lastDownloadUrl);
+    lastDownloadUrl = URL.createObjectURL(blob);
+
+    downloadLink.href = lastDownloadUrl;
     downloadLink.download = `senbay-${Date.now()}.webm`;
     downloadLink.hidden = false;
     downloadLink.textContent = "Download Video";
@@ -138,6 +124,8 @@ export async function bootApp(): Promise<void> {
       x: point.x - qrRect.x,
       y: point.y - qrRect.y,
     };
+
+    qrMoveHint.hidden = true;
 
     canvas.classList.add("dragging");
     canvas.setPointerCapture(event.pointerId);
@@ -192,8 +180,7 @@ export async function bootApp(): Promise<void> {
     hasCanvasSizeInitialized = true;
     qrRect = clampQrRect(qrRect, canvas);
 
-    // 録画されるCanvasには、映像とQRコードだけ描く
-    drawVideoCover(ctx, video, canvas);
+    drawVideoCover(drawCtx, video, canvas);
 
     const now = performance.now();
 
@@ -208,26 +195,23 @@ export async function bootApp(): Promise<void> {
     }
 
     if (lastEncoded) {
-      await drawQrOverlay(ctx, lastEncoded, qrRect.x, qrRect.y, qrRect.size);
+      await drawQrOverlay(
+        drawCtx,
+        lastEncoded,
+        qrRect.x,
+        qrRect.y,
+        qrRect.size,
+      );
     }
 
     if (isRecording) {
-      const elapsedText = formatElapsed(Date.now() - recordingStartedAt);
-      updateRecordingStatus(recordingStatus, elapsedText);
+      recordingElapsed.textContent = formatElapsed(
+        Date.now() - recordingStartedAt,
+      );
     }
 
     requestAnimationFrame(render);
   }
-}
-
-function updateRecordingStatus(
-  toolbarStatus: HTMLSpanElement,
-  elapsedText: string,
-): void {
-  toolbarStatus.innerHTML = `
-    <span class="recording-dot"></span>
-    Recording ${elapsedText}
-  `;
 }
 
 function toCanvasPoint(canvas: HTMLCanvasElement, event: PointerEvent): Point {
@@ -273,6 +257,20 @@ function scaleQrRectForCanvasChange(
     x: qrRect.x * (canvas.width / previousCanvasSize.width),
     y: qrRect.y * (canvas.height / previousCanvasSize.height),
   };
+}
+
+function requireElement<T extends Element>(selector: string): T {
+  const element = document.querySelector<T>(selector);
+  if (!element) {
+    throw new Error(`Required DOM element not found: ${selector}`);
+  }
+  return element;
+}
+
+function require2dContext(canvas: HTMLCanvasElement): CanvasRenderingContext2D {
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Canvas 2D context is not available");
+  return ctx;
 }
 
 function formatElapsed(ms: number): string {

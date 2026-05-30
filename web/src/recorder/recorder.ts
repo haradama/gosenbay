@@ -6,10 +6,12 @@ export class CanvasRecorder {
     this.chunks = [];
 
     const stream = canvas.captureStream(fps);
+    const mimeType = pickMimeType();
 
-    this.recorder = new MediaRecorder(stream, {
-      mimeType: pickMimeType(),
-    });
+    this.recorder = new MediaRecorder(
+      stream,
+      mimeType ? { mimeType } : undefined,
+    );
 
     this.recorder.addEventListener("dataavailable", (event) => {
       if (event.data.size > 0) {
@@ -47,5 +49,6 @@ function pickMimeType(): string {
     "video/webm",
   ];
 
+  if (typeof MediaRecorder === "undefined") return "";
   return candidates.find((type) => MediaRecorder.isTypeSupported(type)) ?? "";
 }

@@ -19,7 +19,12 @@ let lastGeo: GeolocationCoordinates | null = null;
 let lastMotion: DeviceMotionEvent | null = null;
 let lastOrientation: DeviceOrientationEvent | null = null;
 
+let sensorsEnabled = false;
+
 export async function enableSensors(): Promise<void> {
+  if (sensorsEnabled) return;
+  sensorsEnabled = true;
+
   if ("geolocation" in navigator) {
     navigator.geolocation.watchPosition(
       (position) => {

@@ -274,6 +274,7 @@ func (baseX BaseX) decodeDoubleValue(sVal []rune) float64 {
 // Format is a struct that contains the information of the format of Senbay text.
 type Format struct {
 	ReversedKeys map[string]string
+	originalKeys map[string]string
 	PN           int
 	baseX        *BaseX
 }
@@ -284,8 +285,15 @@ func NewSenbayFormat(PN int) (*Format, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	originalKeys := make(map[string]string, len(reversedKeys))
+	for k, v := range reversedKeys {
+		originalKeys[v] = k
+	}
+
 	senbayFormat := &Format{
 		ReversedKeys: reversedKeys,
+		originalKeys: originalKeys,
 		PN:           PN,
 		baseX:        baseX,
 	}
@@ -295,24 +303,12 @@ func NewSenbayFormat(PN int) (*Format, error) {
 
 // getReservedShortKey returns the reserved short key for a given original key
 func (senbayFormat Format) getReservedShortKey(key string) string {
-	for k, v := range senbayFormat.ReversedKeys {
-		if k == key {
-			return v
-		}
-	}
-
-	return ""
+	return senbayFormat.ReversedKeys[key]
 }
 
 // getReservedOriginalKey returns the original key for a reserved key
 func (senbayFormat Format) getReservedOriginalKey(key string) string {
-	for k, v := range senbayFormat.ReversedKeys {
-		if v == key {
-			return k
-		}
-	}
-
-	return ""
+	return senbayFormat.originalKeys[key]
 }
 
 // encode encodes Senbay text.
